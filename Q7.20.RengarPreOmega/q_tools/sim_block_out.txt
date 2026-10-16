@@ -1,0 +1,21 @@
+PASS on floor at block request
+PASS request_block accepted (mirrors Player3d._input)
+PASS block active after hold >= activation_time, dir=LEFT
+PASS attack rejected while block active
+PASS enemy intent RIGHT accepted (core free)
+PASS matching block (LEFT vs RIGHT): hp unchanged (100 == 100)
+PASS block_successful emitted once with defender=PLAYER
+PASS enemy punished on blocked attack: stunned and attack cancelled
+PASS block auto-expired after active_duration
+PASS still held -> NO reactivation (one press = one block)
+PASS request_block accepted on re-press
+PASS re-press reactivates, gesture up -> dir=UP
+PASS enemy intent RIGHT accepted (stun over, no recovery)
+PASS mismatched block (UP vs RIGHT): damage passed (100 -> 95, enemy_damage=5)
+PASS damage during block locks player input (0.1s)
+PASS enemy intent LEFT accepted after recovery 2.0
+PASS block long expired: damage passed again (95 -> 90)
+PASS CONTRACT: core accepts attack while stunned (stun gates provider, not core)
+PASS short hold (< activation_time): block never activated
+PASS RMB hold without gesture: block active, default dir=UP
+SUMMARY passed=20 failed=0

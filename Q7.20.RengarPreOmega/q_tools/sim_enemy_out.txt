@@ -1,0 +1,95 @@
+EVT t=0.01 attack_started dir=UP
+EVT t=0.01 attack_performed dir=UP
+ST t=0.12 state=IDLE     can_atk=0 clip=AttackUp    pos=0.15 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.26 state=IDLE     can_atk=0 clip=AttackUp    pos=0.33 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.40 state=IDLE     can_atk=0 clip=AttackUp    pos=0.50 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.54 state=IDLE     can_atk=0 clip=AttackUp    pos=0.68 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.68 state=IDLE     can_atk=0 clip=AttackUp    pos=0.86 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.81 state=IDLE     can_atk=0 clip=AttackUp    pos=1.04 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=0.95 state=IDLE     can_atk=0 clip=AttackUp    pos=1.22 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.09 state=IDLE     can_atk=0 clip=AttackUp    pos=1.40 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.23 state=IDLE     can_atk=0 clip=AttackUp    pos=1.58 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.37 state=IDLE     can_atk=0 clip=AttackUp    pos=1.76 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.50 state=IDLE     can_atk=0 clip=AttackUp    pos=1.94 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.64 state=IDLE     can_atk=0 clip=AttackUp    pos=2.12 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.78 state=IDLE     can_atk=0 clip=AttackUp    pos=2.30 dist=2.50 stealth=0 dec=APPROACH op=1
+ST t=1.92 state=IDLE     can_atk=0 clip=AttackUp    pos=2.48 dist=2.47 stealth=0 dec=APPROACH op=1
+ST t=2.06 state=IDLE     can_atk=0 clip=AttackUp    pos=2.66 dist=2.10 stealth=0 dec=APPROACH op=1
+ST t=2.19 state=IDLE     can_atk=0 clip=AttackUp    pos=2.83 dist=1.70 stealth=0 dec=APPROACH op=1
+ST t=2.33 state=IDLE     can_atk=0 clip=AttackUp    pos=3.01 dist=1.50 stealth=0 dec=APPROACH op=1
+EVT t=2.38 attack_started dir=UP
+EVT t=2.38 attack_performed dir=UP
+ST t=2.47 state=IDLE     can_atk=0 clip=AttackUp    pos=3.19 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=2.61 state=IDLE     can_atk=0 clip=AttackUp    pos=3.37 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=2.75 state=IDLE     can_atk=0 clip=AttackUp    pos=3.55 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=2.88 state=IDLE     can_atk=0 clip=AttackUp    pos=3.73 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.02 state=IDLE     can_atk=0 clip=Idle        pos=0.05 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.16 state=IDLE     can_atk=0 clip=Idle        pos=0.19 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.30 state=IDLE     can_atk=0 clip=Idle        pos=0.32 dist=1.50 stealth=0 dec=APPROACH op=1
+EVT t=3.44 DAMAGE_TO_ENEMY (clip=HitReact state=IDLE started=2)
+ST t=3.44 state=IDLE     can_atk=0 clip=HitReact    pos=0.00 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.57 state=IDLE     can_atk=0 clip=HitReact    pos=0.13 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.71 state=IDLE     can_atk=0 clip=HitReact    pos=0.27 dist=1.50 stealth=0 dec=APPROACH op=1
+EVT t=3.84 attack_started dir=UP
+EVT t=3.84 attack_performed dir=UP
+ST t=3.85 state=IDLE     can_atk=0 clip=AttackUp    pos=0.01 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=3.99 state=IDLE     can_atk=0 clip=AttackUp    pos=0.19 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.13 state=IDLE     can_atk=0 clip=AttackUp    pos=0.37 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.26 state=IDLE     can_atk=0 clip=AttackUp    pos=0.55 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.40 state=IDLE     can_atk=0 clip=AttackUp    pos=0.73 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.54 state=IDLE     can_atk=0 clip=AttackUp    pos=0.91 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.68 state=IDLE     can_atk=0 clip=AttackUp    pos=1.09 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.82 state=IDLE     can_atk=0 clip=AttackUp    pos=1.26 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=4.95 state=IDLE     can_atk=0 clip=AttackUp    pos=1.44 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.09 state=IDLE     can_atk=0 clip=AttackUp    pos=1.62 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.23 state=IDLE     can_atk=0 clip=AttackUp    pos=1.80 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.37 state=IDLE     can_atk=0 clip=AttackUp    pos=1.98 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.51 state=IDLE     can_atk=0 clip=AttackUp    pos=2.16 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.64 state=IDLE     can_atk=0 clip=AttackUp    pos=2.34 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.78 state=IDLE     can_atk=0 clip=AttackUp    pos=2.52 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=5.92 state=IDLE     can_atk=0 clip=AttackUp    pos=2.70 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.06 state=IDLE     can_atk=0 clip=AttackUp    pos=2.88 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.20 state=IDLE     can_atk=0 clip=AttackUp    pos=3.06 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.33 state=IDLE     can_atk=0 clip=AttackUp    pos=3.24 dist=1.50 stealth=0 dec=APPROACH op=1
+EVT t=6.38 attack_started dir=UP
+EVT t=6.38 attack_performed dir=UP
+ST t=6.47 state=IDLE     can_atk=0 clip=AttackUp    pos=3.42 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.61 state=IDLE     can_atk=0 clip=AttackUp    pos=3.60 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.75 state=IDLE     can_atk=0 clip=AttackUp    pos=3.78 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=6.89 state=IDLE     can_atk=0 clip=Idle        pos=0.08 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.02 state=IDLE     can_atk=0 clip=Idle        pos=0.22 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.16 state=IDLE     can_atk=0 clip=Idle        pos=0.36 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.30 state=IDLE     can_atk=0 clip=Idle        pos=0.50 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.44 state=IDLE     can_atk=0 clip=Idle        pos=0.63 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.58 state=IDLE     can_atk=0 clip=Idle        pos=0.77 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.71 state=IDLE     can_atk=0 clip=Idle        pos=0.91 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.85 state=IDLE     can_atk=0 clip=Idle        pos=1.05 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=7.99 state=IDLE     can_atk=0 clip=Idle        pos=1.19 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.13 state=IDLE     can_atk=0 clip=Idle        pos=1.32 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.27 state=IDLE     can_atk=0 clip=Idle        pos=1.46 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.40 state=IDLE     can_atk=0 clip=Idle        pos=1.60 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.54 state=IDLE     can_atk=0 clip=Idle        pos=1.74 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.68 state=IDLE     can_atk=0 clip=Idle        pos=1.88 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.82 state=IDLE     can_atk=0 clip=Idle        pos=2.01 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=8.96 state=IDLE     can_atk=0 clip=Idle        pos=2.15 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.09 state=IDLE     can_atk=0 clip=Idle        pos=2.29 dist=1.50 stealth=0 dec=APPROACH op=1
+EVT t=9.15 attack_started dir=LEFT
+EVT t=9.15 attack_performed dir=LEFT
+ST t=9.23 state=IDLE     can_atk=0 clip=AttackLeft  pos=0.10 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.37 state=IDLE     can_atk=0 clip=AttackLeft  pos=0.28 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.51 state=IDLE     can_atk=0 clip=AttackLeft  pos=0.46 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.65 state=IDLE     can_atk=0 clip=AttackLeft  pos=0.64 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.79 state=IDLE     can_atk=0 clip=AttackLeft  pos=0.82 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=9.92 state=IDLE     can_atk=0 clip=AttackLeft  pos=1.00 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=10.06 state=IDLE     can_atk=0 clip=AttackLeft  pos=1.17 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=10.20 state=IDLE     can_atk=0 clip=AttackLeft  pos=1.35 dist=1.50 stealth=0 dec=APPROACH op=1
+ST t=10.34 state=IDLE     can_atk=0 clip=AttackLeft  pos=1.53 dist=1.50 stealth=0 dec=APPROACH op=1
+PASS враг реально атакует: started=5 > 0
+PASS каждое намерение исполнено: performed(5) == started(5)
+PASS перезапусков-подмен <1с нет: 0 == 0
+PASS clip-подмены в пределах легальных переходов: 0 <= 4
+PASS удары врага достают игрока: hp 99985 < 100000
+PASS бой на месте: финальный dist 1.50 ∈ [1.0, 3.5]
+PASS Фаза A: мозг ЖДЁТ ИСХОДЫ — intents_sent(5)==started(5), отказов ядром 0==0
+PASS Фаза A: каждая атака закрыта исходом — outcomes(4) >= started-1(4)
+SUMMARY started=5 performed=5 restarts_lt1s=0 clip_swaps=0 passed=8 failed=0
