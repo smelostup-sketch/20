@@ -1,0 +1,20 @@
+SIM_SKY (омега-небо: контроллер фаз, переходы, ветер, интеграция)
+PASS S1 старт: фаза SUNSET, авто выключено в тест-сцене
+PASS S1 материал: sunset_amount=1, night=0, star_visibility=0
+PASS S2 instant NIGHT: фаза=2, star_visibility=1.0, light_energy=0.45
+PASS S2 instant NIGHT: sunset_amount=0, night_amount=1, moon_intensity=1.2
+PASS S3 переход NIGHT→SUNSET 1с: на середине star_visibility=0.50 ∈ (0,1)
+PASS S3 во время перехода фаза ещё NIGHT (сменится по завершении)
+PASS S4 прерывание: ретаргет без снапа (тот же тик, 0.278 == 0.278)
+PASS S5 ретаргет завершён: NIGHT, star_visibility=1.0 (0.999911)
+PASS S6 нулевая длительность = мгновенно: фаза TWILIGHT сразу
+PASS S7 автопрогресс дошёл до NIGHT и СТОП (night_duration=0, loop off): фаза=2
+PASS S8 облака движутся: |Δoffset|=0.0081 > 0 по ветру (sign x совпадает)
+PASS S9 ветер ×4: Δoffset 0.0322 ≈ 4×0.0081 (±25%)
+PASS S10 вне перехода star_visibility держит NIGHT=1.0: 1.000
+PASS S10 контроллер без ссылок: no-op без падения
+PASS S11 основная сцена: один WorldEnvironment (дублей нет)
+PASS S11 основная сцена: контроллер на месте, sky и light_path назначены
+PASS S11 свет основной сцены синхронен фазе: energy=0.45 (ночь 0.45)
+PASS S11 Environment основной сцены сохранён: tonemap=2, ambient_source=3
+SUMMARY passed=18 failed=0
