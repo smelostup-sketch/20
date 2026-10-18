@@ -1,0 +1,10 @@
+SIM_LEAP TARGET=DUMMY
+PASS ambush leap triggered (is_leaping)
+PASS leap direction toward target (dot=1.00)
+PASS leap speed 8.00 ~= expected 8.00 (dist/leap_time clamped)
+PASS stealth consumed by ambush
+PASS closing distance to target (4.00 -> 2.45)
+PASS attack committed in flight carries leap flag (last_attack_was_in_leap)
+PASS leap finished on landing (is_leaping=false, on_floor=true)
+INFO physical contact in flight did not occur — purple stack on leap hit is a LIVE check
+SUMMARY passed=7 failed=0
