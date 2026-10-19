@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Q7.31_SKY_A7/CloudsTestBench.gd" id="1_bench"]
+[ext_resource type="Sky" path="res://Q7.31_SKY_A7/omega_clouds_test_sky.tres" id="2_sky"]
+
+[sub_resource type="Environment" id="Environment_clouds_test"]
+background_mode = 2
+sky = ExtResource("2_sky")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ref"]
+size = Vector2(400, 400)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ref"]
+albedo_color = Color(0.22, 0.26, 0.2, 1)
+
+[node name="CloudsTest" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_clouds_test")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 2, 8)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819, 0.4397, -0.3691, 0, 0.643, 0.766, 0.574, -0.6274, 0.5266, 0, 8, 0)
+light_energy = 2.2
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ref")
+surface_material_override/0 = SubResource("StandardMaterial3D_ref")
+
+[node name="Bench" type="Node" parent="."]
+script = ExtResource("1_bench")
