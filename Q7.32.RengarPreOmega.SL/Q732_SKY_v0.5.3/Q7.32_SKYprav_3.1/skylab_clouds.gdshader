@@ -297,8 +297,9 @@ render_mode use_quarter_res_pass;
 // ДИАГНОСТИКА B5: uniform cloud_debug_mode, ОДИН марш на все режимы 0-8:
 //   0 = финальный рендер (lit-марш + atmo-композит); 1 = базовая плотность (средняя d);
 //   2 = T (Beer-Lambert); 3 = поле self-shadowing (взвешенное среднее T_light);
-//   4 = знак вклада HG (серый = изотроп); 5 = снятое powder-ом прямое излучение;
-//   6 = накопленный MS; 7 = накопленный ambient; 8 = фактор atmo-перспективы (без марша);
+//   4 = освещённость E (вход рамп, SKYLAB); 5 = маска silver lining (SKYLAB);
+//   6 = рассеянный вклад (SKYLAB); 7 = высотный профиль 0.35+0.65h (SKYLAB);
+//   8 = фактор atmo-перспективы (без марша);
 //   9-12 = геометрические режимы A3 БЕЗ марша: HIT/MISS-маска, t_near, длина пути,
 //   чистое небо. Каждый режим показывает ИМЕННО исследуемый член (не цветовой фильтр).
 //   ЧЕСТНЫЙ ПРОПУСК: гейты need_terms/need_shadow/need_powder/need_ms/need_amb —
@@ -480,6 +481,44 @@ uniform float hc_ambient_gain = 1.0;		// SKYHC-4: доля заливки неб
 uniform float hc_debug = 0.0;				// 0 выкл / 1 плотность / 2 альфа / 3 оптическая толщина
 
 // Явный smoothstep (переносимость между бэкендами, A5).
+
+// ==== SKYLAB v0.4 (шаг 5): палитра неба M1 + ColorRamp освещения облаков (D3) ====
+uniform vec3 sk_zenith : source_color = vec3(0.015954, 0.022894, 0.060409);
+uniform vec3 sk_horizon : source_color = vec3(2.0, 0.078501, 0.036102);
+uniform vec3 sk_glow_col : source_color = vec3(2.0, 0.078501, 0.036102);
+uniform float sk_glow_int : hint_range(0.0, 1.0) = 0.30;
+uniform float sk_glow_exp : hint_range(1.0, 32.0) = 6.0;
+uniform float sk_wedge_int : hint_range(0.0, 1.0) = 0.35;
+uniform float sk_wedge_az : hint_range(0.5, 16.0) = 3.0;	// v0.5.1: спад добавочного света вдоль горизонта
+uniform float sk_zen_lift : hint_range(1.0, 6.0) = 2.0;	// v0.5.1: зенит = СРЕДНЯЯ точка между полюсами, не тёмная
+uniform float sk_wedge_k : hint_range(0.0, 32.0) = 4.0;
+uniform float sk_grad_pow : hint_range(0.2, 8.0) = 1.6;
+uniform vec3 sk_sun_dir = vec3(0.0, 0.0, -1.0);
+uniform vec3 sk_anti_col : source_color = vec3(0.0202, 0.00718, 0.0152);	// v0.5.1: антисоляр = самая тёмная точка купола
+uniform float sk_anti_int : hint_range(0.0, 1.0) = 1.0;
+uniform float sk_anti_p_lo : hint_range(0.3, 4.0) = 0.6;	// v0.5.2: низкое солнце — широкое тёмное ядро
+uniform float sk_anti_p_hi : hint_range(0.3, 4.0) = 3.0;	// v0.5.2: высокое солнце — узкое ядро
+uniform float sk_low_dim : hint_range(0.0, 1.0) = 0.25;	// v0.13: купол темнее при низком солнце
+uniform vec3 sk_below_col : source_color = vec3(0.030, 0.011, 0.018);	// v0.9: ниже горизонта
+uniform float sk_below_int : hint_range(0.0, 1.0) = 0.55;
+uniform float sk_dither : hint_range(0.0, 1.0) = 1.0;
+uniform float sk_clouds_on : hint_range(0.0, 1.0) = 1.0;
+uniform vec3 sk_ramp0 : source_color = vec3(0.067343, 0.023926, 0.050686);	// глубокая сине-фиолетовая тень
+uniform vec3 sk_ramp1 : source_color = vec3(0.143677, 0.025475, 0.036102);	// сливово-бордовая тень
+uniform vec3 sk_ramp2 : source_color = vec3(2.0, 0.093041, 0.045549);		// персиково-коралловый полутон
+uniform vec3 sk_ramp3 : source_color = vec3(2.0, 0.107580, 0.054996);		// освещённая зона (lit состояния)
+uniform vec3 sk_ramp4 : source_color = vec3(2.0, 1.243032, 1.221998);		// почти белый блик
+uniform float sk_amb_w : hint_range(0.0, 2.0) = 0.35;		// вес рассеянного вклада (v0.8: тени должны доходить до ramp0)
+uniform float sk_ramp_gamma : hint_range(0.5, 3.0) = 1.4;	// v0.11: верх рамп только для бликов
+uniform float sk_ramp_white = 1.0;			// освещённость, соответствующая верхнему стопу
+uniform vec3 sk_rim_col : source_color = vec3(2.0, 0.258963, 0.188911);
+uniform float sk_rim_int : hint_range(0.0, 2.0) = 0.35;
+uniform float sk_rim_exp : hint_range(0.5, 16.0) = 4.0;
+uniform float sk_alpha_lo : hint_range(0.0, 1.0) = 0.10;	// шаг 6: окно crisp-силуэта по alpha
+uniform float sk_alpha_hi : hint_range(0.0, 1.0) = 0.90;
+uniform float sk_rim_fade_start = 4000.0;	// шаг 6: гейт rim по дистанции (анти-мерцание)
+uniform float sk_rim_fade_end = 12000.0;
+
 float sstep(float lo, float hi, float x) {
 	float t = clamp((x - lo) / (hi - lo), 0.0, 1.0);
 	return t * t * (3.0 - 2.0 * t);
@@ -602,13 +641,45 @@ vec3 sun_blur_glow(vec3 dir, float alpha_occ) {
 // C8: градиент неба G(dir): вертикаль + угловые кольца вокруг солнца (см. шапку).
 // CPU-зеркало: CloudsTestBench.compute_sky_gradient().
 vec3 sky_gradient(vec3 dir, vec3 sundir) {
-	float t = dot(dir, sundir);
-	// D3: все окна палитры — через sharp_mix (sky_grad_sharp=1 → побитово D1/D2).
-	vec3 base = mix(sky_horizon_color, sky_zenith_color, sharp_mix(0.02, 0.35, dir.y, sky_grad_sharp));
-	base = mix(base, sky_antisolar_color, sharp_mix(-0.20, -0.80, t, sky_grad_sharp));
-	base = mix(base, sky_band_mid, sharp_mix(0.10, 0.60, t, sky_grad_sharp));
-	base = mix(base, sky_band_pink, sharp_mix(0.70, 0.92, t, sky_grad_sharp));
-	base = mix(base, sky_band_white, sharp_mix(0.92, 0.995, t, sky_grad_sharp));
+	// v0.5.1: МОДЕЛЬ ДВУХ ПОЛЮСОВ + ГОРИЗОНТ (по ТЗ заказчика):
+	//   полюс 1 = направление источника → светлый; полюс 2 = противоположный → тёмный;
+	//   зенит = средняя точка между полюсами (НЕ тёмная); вдоль горизонта добавочный
+	//   свет расходится, спадая с угловым удалением от основного источника.
+	//   Привязка только к мировому направлению солнца.
+	vec3 sd = normalize(sk_sun_dir);
+	float h = clamp(dir.y, -1.0, 1.0);
+	float az3 = dot(dir, sd);
+	float tp = clamp(0.5 + 0.5 * az3, 0.0, 1.0);	// 0 = антисоляр, 1 = солнце
+	vec3 zen_mid = sk_zenith * sk_zen_lift;			// средняя точка полюсов
+	// v0.5.2 ФИКСИРОВАННЫЙ ЗАКОН: доля светлого купола растёт с высотой солнца.
+	// Низкое солнце → широкое и тёмное антисолярное ядро (светлого купола мало);
+	// высокое → узкое ядро и осветлённый антисоляр (светлого купола много).
+	float sh = smoothstep(-0.03, 0.85, sd.y);
+	float p_ant = mix(sk_anti_p_lo, sk_anti_p_hi, sh);
+	vec3 anti_c = mix(sk_anti_col, zen_mid, 0.45 * sh);
+	float hmask = 1.0 - smoothstep(0.0, 0.45, abs(h));	// полюса расходятся по горизонту
+	vec3 pole = (tp < 0.5)
+			? mix(anti_c, zen_mid, pow(clamp(tp / 0.5, 0.0, 1.0), p_ant))
+			: mix(zen_mid, sk_horizon, smoothstep(0.5, 1.0, tp));
+	vec3 base = mix(zen_mid, pole, hmask);
+	// горизонт: добавочный свет, спадающий с удалением от источника вдоль горизонта
+	vec2 dH = vec2(dir.x, dir.z);
+	vec2 sH = vec2(sd.x, sd.z);
+	float azH = dot(dH, sH) / max(length(dH) * length(sH), 1e-6);
+	float band = pow(max(azH, 0.0), sk_wedge_az) * exp(-abs(h) * sk_wedge_k) * sk_wedge_int;
+	base = mix(base, sk_glow_col, clamp(band, 0.0, 1.0));
+	// ореол вокруг полюса света
+	float sp = clamp(az3, 0.0, 1.0);
+	base = mix(base, sk_glow_col, clamp(pow(sp, sk_glow_exp) * sk_glow_int, 0.0, 1.0));
+	// ниже горизонта — в тень состояния
+	base = mix(base, sk_below_col, smoothstep(0.0, -0.18, h) * sk_below_int);
+	// чем ниже солнце, тем менее освещён купол
+	float low = 1.0 - smoothstep(0.0, 20.0, sd.y);
+	base *= 1.0 - sk_low_dim * low;
+	if (sk_dither > 0.5) {
+		float n = fract(sin(dot(dir, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+		base += (n - 0.5) * (1.0 / 255.0);
+	}
 	return base;
 }
 
@@ -658,7 +729,8 @@ float light_transmittance(vec3 p, vec3 ldir, float steps_cap) {
 void cloud_radiance_terms(vec3 p, vec3 view_dir, float d,
 		bool do_shadow, bool do_powder, bool do_ms, bool do_amb, float ls_cap,
 		out vec3 sun_o, out vec3 amb_o, out vec3 ms_o,
-		out float t_light_o, out float powder_o, out vec3 sun_nopow_o) {
+		out float t_light_o, out float powder_o, out vec3 sun_nopow_o,
+		out float E_o, out float rim_o, out float sc_o, out float hf_o) {
 	// Прямой свет: направление нормализуется с guard'ом (нулевой вектор → cosθ=0, без NaN).
 	vec3 ldir = cloud_light_direction / max(length(cloud_light_direction), 1e-5);
 	float cos_theta = dot(view_dir, ldir);
@@ -689,10 +761,10 @@ void cloud_radiance_terms(vec3 p, vec3 view_dir, float d,
 	if (do_powder) {
 		powder = mix(1.0, 1.0 - exp(-2.0 * d), powder_strength);
 	}
-	sun_nopow_o = sun_col * (cloud_light_strength * phase) * t_light;
-	sun_o = sun_nopow_o * powder;
-	// Ambient: градиент земля→небо по доле высоты в слое (или константа, если выключен).
-	// C9: ambient-верх может браться из зенита градиента неба (G(up)·gain).
+	// SKYLAB v0.4 (шаг 5, D3): освещение = ColorRamp по физической освещённости:
+	// E = прямой свет с самозатенением (t_light — Beer-Lambert марш к источнику)
+	//     × высотный профиль + рассеянный вклад (ambient-градиент, luminance).
+	// Рампа: сине-фиолетовые тени → сливово-бордовые → персик-коралл → lit → блик.
 	vec3 amb_top = cloud_ambient_sky_color;
 	if (use_ambient_from_sky) {
 		amb_top = (use_gradient_sky ? sky_gradient(vec3(0.0, 1.0, 0.0), ldir) : sky_color) * ambient_sky_gain;
@@ -700,16 +772,34 @@ void cloud_radiance_terms(vec3 p, vec3 view_dir, float d,
 	vec3 amb_col = use_ambient_gradient
 			? mix(cloud_ambient_ground_color, amb_top, layer_height_fraction(p.y))
 			: amb_top;
-	amb_o = do_amb ? amb_col * cloud_ambient_energy : vec3(0.0);
-	// B4: approximate MS — изотропно: солнечный диффузный проник туда, где прямой луч
-	// погашен (1−T_light), плюс ambient-член, гейтнутый локальной плотностью.
-	ms_o = vec3(0.0);
-	if (do_ms) {
-		ms_o = ms_strength * (sun_col * cloud_light_strength * (ms_sun_gain * (1.0 - t_light))
-				+ amb_col * cloud_ambient_energy * (ms_amb_gain * d));
+	float hf = layer_height_fraction(p.y);
+	float amb_lum = dot(amb_col, vec3(0.33333));
+	float E_ill = clamp(t_light * (0.35 + 0.65 * hf) * powder + amb_lum * sk_amb_w * hf, 0.0, 1.0);
+	float u = clamp(pow(E_ill, sk_ramp_gamma) / max(sk_ramp_white, 1e-3), 0.0, 1.0) * 4.0;
+	vec3 rc;
+	if (u < 1.0) {
+		rc = mix(sk_ramp0, sk_ramp1, u);
+	} else if (u < 2.0) {
+		rc = mix(sk_ramp1, sk_ramp2, u - 1.0);
+	} else if (u < 3.0) {
+		rc = mix(sk_ramp2, sk_ramp3, u - 2.0);
+	} else {
+		rc = mix(sk_ramp3, sk_ramp4, u - 3.0);
 	}
+	// silver lining: контровая кромка силуэта против источника
+	float rim_m = pow(max(dot(view_dir, ldir), 0.0), sk_rim_exp) * (1.0 - t_light);
+	rim_m *= 1.0 - sstep(sk_rim_fade_start, sk_rim_fade_end, length(p));	// шаг 6: анти-мерцание вдали
+	rc += sk_rim_col * (rim_m * sk_rim_int);
+	sun_nopow_o = rc;
+	sun_o = rc;
+	amb_o = vec3(0.0);
+	ms_o = vec3(0.0);
 	t_light_o = t_light;
 	powder_o = powder;
+	E_o = E_ill;
+	rim_o = rim_m * sk_rim_int;
+	sc_o = amb_lum * 0.9;
+	hf_o = 0.35 + 0.65 * hf;
 }
 
 // Пересечение луча со слоем [bottom, top] (A3, без изменений).
@@ -804,8 +894,29 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 	bool need_amb = (cdm < 0.5) || (cdm > 6.5 && cdm < 7.5);
 	float ls_cap = cheap ? 2.0 : 16.0;
 
-	int steps = int(clamp(cheap ? min(march_steps, 32.0) : march_steps, 8.0, 256.0));
-	float t_end = min(t_far, t_near + max_ray_length);	// ограничение длины
+	float base_steps = cheap
+			? min(march_steps, 32.0)
+			: march_steps;
+
+	// Для вертикальных лучей множитель равен 1.
+	// Чем ближе луч к горизонту, тем больше шагов.
+	float angle_factor = 1.0;
+
+	if (!cheap) {
+		angle_factor = clamp(
+				1.0 / max(abs(dir.y), 0.25),
+				1.0,
+				4.0
+		);
+	}
+
+	int steps = int(clamp(
+			ceil(base_steps * angle_factor),
+			8.0,
+			256.0
+	));
+
+	float t_end = min(t_far, t_near + max_ray_length);
 	float seg = (t_end - t_near) / float(steps);
 	float transmittance = 1.0;
 	float dsum = 0.0;
@@ -814,6 +925,10 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 	float tl_w = 0.0;
 	float hg_sig = 0.0;
 	float pow_rem = 0.0;
+	float E_w = 0.0;
+	float rim_w = 0.0;
+	float sc_w = 0.0;
+	float hf_w = 0.0;
 	vec3 sun_acc = vec3(0.0);
 	vec3 amb_acc = vec3(0.0);
 	vec3 ms_acc = vec3(0.0);
@@ -829,8 +944,9 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 			wsum += w;
 			if (need_terms) {
 				vec3 sun_t; vec3 amb_t; vec3 ms_t; vec3 sun_np_t; float tl; float pwd;
+				float E_t; float rim_t; float sc_t; float hf_t;
 				cloud_radiance_terms(p, dir, d, need_shadow, need_powder, need_ms, need_amb, ls_cap,
-						sun_t, amb_t, ms_t, tl, pwd, sun_np_t);
+						sun_t, amb_t, ms_t, tl, pwd, sun_np_t, E_t, rim_t, sc_t, hf_t);
 				// C5b: MS 2-го порядка — растёт с глубиной от освещённого края по ходу луча
 				// (1−T_view) и с погашением прямого луча (1−T_light); без дополнительных маршей.
 				vec3 ms2_t = vec3(0.0);
@@ -845,6 +961,10 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 				vec3 sun_iso = cloud_light_color * (cloud_light_strength * (tl * pwd));
 				hg_sig += w * dot(sun_t - sun_iso, vec3(0.33333));
 				pow_rem += w * dot(sun_np_t - sun_t, vec3(0.33333));
+				E_w += w * E_t;
+				rim_w += w * rim_t;
+				sc_w += w * sc_t;
+				hf_w += w * hf_t;
 			}
 			transmittance *= step_tr;
 			if (transmittance < early_exit_transmittance) {
@@ -857,8 +977,12 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 		// 0: premultiplied-контракт subpass: rgb = рассеяние (с atmo), alpha = 1−T
 		vec3 cloudC = (sun_acc + amb_acc + ms_acc) * cloud_color;
 		cloudC = mix(cloudC, atmo_color * (1.0 - transmittance), atmo_f);
-		rgb_o = cloudC;
-		alpha_o = 1.0 - transmittance;
+		// SKYLAB шаг 6: crisp-силуэт — sstep-окно по alpha; rgb домножается пропорционально
+		// (premultiplied-контракт subpass сохранён).
+		float a_raw = 1.0 - transmittance;
+		float a_crisp = sstep(sk_alpha_lo, sk_alpha_hi, a_raw);
+		rgb_o = cloudC * (a_crisp / max(a_raw, 1e-4));
+		alpha_o = a_crisp;
 	} else if (cdm < 1.5) {
 		rgb_o = vec3(dsum / max(used_f, 1.0));
 		alpha_o = 1.0;
@@ -869,16 +993,16 @@ void sky_modes(vec3 dir, bool hit, float t_near, float t_far, bool cheap, vec3 b
 		rgb_o = vec3(tl_w / wguard);
 		alpha_o = 1.0;
 	} else if (cdm < 4.5) {
-		rgb_o = vec3(0.5 + 0.25 * clamp(hg_sig / wguard, -2.0, 2.0));
+		rgb_o = vec3(clamp(E_w / wguard, 0.0, 1.0));	// SKYLAB: освещённость E (вход рамп)
 		alpha_o = 1.0;
 	} else if (cdm < 5.5) {
-		rgb_o = vec3(pow_rem / wguard);
+		rgb_o = vec3(rim_w / wguard);	// SKYLAB: маска silver lining
 		alpha_o = 1.0;
 	} else if (cdm < 6.5) {
-		rgb_o = ms_acc;
+		rgb_o = vec3(sc_w / wguard);	// SKYLAB: рассеянный вклад
 		alpha_o = 1.0;
 	} else {
-		rgb_o = amb_acc;
+		rgb_o = vec3(hf_w / wguard);	// SKYLAB: высотный профиль
 		alpha_o = 1.0;
 	}
 }
@@ -1017,6 +1141,7 @@ void sky() {
 	float t_near = 0.0;
 	float t_far = 0.0;
 	bool hit = layer_interval(dir, cloud_layer_bottom, cloud_layer_top, t_near, t_far);
+	hit = hit && sk_clouds_on > 0.5;	// SKYLAB v0.4: гейт кучевых (0 = чистое небо v0.2)
 	vec3 rgb;
 	float alpha;
 	// SKYHC-1: диагностика вуали (hc_debug 1-3) — отдельный честный пропуск: ни марша

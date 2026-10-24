@@ -123,7 +123,10 @@ func section_resources() -> void:
 	check("R6 bool-типы в материале", typeof(mat.get_shader_parameter("use_hg_phase")) == TYPE_BOOL
 		and typeof(mat.get_shader_parameter("use_ambient_gradient")) == TYPE_BOOL)
 	var sky: Sky = load(SKY_PATH)
-	check("R7 sky load + material", sky != null and sky.sky_material == mat)
+	# SKYLAB v0.5 (атрибуция P4): небо теста переключено на skylab_clouds_material.tres —
+	# R7 принимает omega-материал ИЛИ skylab-материал (оба валидны по решению шагов 2/5).
+	var mat_sk: ShaderMaterial = load("res://Q7.32_SKYprav_3.1/skylab_clouds_material.tres")
+	check("R7 sky load + material (omega ИЛИ skylab)", sky != null and (sky.sky_material == mat or sky.sky_material == mat_sk))
 	# В Godot 4.7 enum Sky: AUTOMATIC=0, INCREMENTAL=2, REALTIME=3. Значение 2 в .tres
 	# (наследие B2) = INCREMENTAL — проверяем фактическое соответствие .tres и enum.
 	check("R8 sky process_mode=INCREMENTAL(2), как в B2", sky.process_mode == Sky.PROCESS_MODE_INCREMENTAL
@@ -144,7 +147,8 @@ func section_resources() -> void:
 	# Камера B2-регрессия: питч +20°, transform не изменён
 	if cam != null:
 		var pitch := rad_to_deg(asin(clampf((-cam.transform.basis.z).y, -1.0, 1.0)))
-		check("R12 питч камеры +20° (B2)", absf(pitch - 20.0) < 0.5, "(факт=%.2f°)" % pitch)
+	# SKYLAB v0.9 (атрибуция P4): камера харнесса переведена на +5° (look-dev у горизонта).
+	check("R12 питч камеры +5° (SKYLAB v0.9, было +20° B2)", absf(cam.rotation_degrees.x - 5.0) < 0.51, "(факт=%.2f°)" % cam.rotation_degrees.x)
 	root.free()
 
 

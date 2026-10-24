@@ -2710,6 +2710,15 @@ func _print_center_ray() -> void:
 		print("[Bench] pitch=%.1f° dir.y=%.5f → HIT t=[%.1f, %.1f] mean_d=%.3f T=%.4f шагов=%d%s drift=(%.0f,%.0f,%.0f)"
 			% [pitch, dir.y, r.t_near, r.t_far, md.mean_density, mc.transmittance, mc.steps_used,
 				" (early-exit)" if mc.early_exited else "", _drift.x, _drift.y, _drift.z])
+		# SKYLAB v0.5: шейдер skylab_clouds — разложение освещения даёт параллельное
+		# зеркало SkyLabMirror (старые зеркала B3/B4 остаются для omega-шейдера).
+		if _mat.shader != null and "skylab_clouds" in str(_mat.shader.resource_path):
+			var mid_s := dir * ((float(r.t_near) + float(r.t_far)) * 0.5)
+			var MIRROR_SCR: GDScript = load("res://Q7.32_SKYprav_3.1/SkyLabMirror.gd")
+			var sm: Dictionary = MIRROR_SCR.skylab_terms(mid_s, dir, dp, _mat)
+			print("[SkyLab] H: E_ill=%.3f t_light=%.4f h=%.2f scatter=%.3f ramp=(%.3f,%.3f,%.3f) rim=%.4f"
+					% [sm.E, sm.t_light, sm.height_frac, sm.scatter, sm.color.x, sm.color.y, sm.color.z, sm.rim])
+			return
 		# B3: разложение освещения центрального луча (terms — в середине слоя, h=0.5)
 		var lp := _material_lp(bottom, top)
 		var mcl := compute_march_lit(dir, bottom, top, int(_param_float("march_steps", 64.0)),
