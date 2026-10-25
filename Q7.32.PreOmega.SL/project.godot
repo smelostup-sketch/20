@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="SKYLAB Q7.32 (harness)"
-run/main_scene="res://Q7.32_SKYprav_3.1/Сцена_облаков_тест.tscn"
+config/name="Q7.32.PreOmega.SL (harness)"
+run/main_scene="res://Q7.32_SKYprav_3.1/Сцена_неба_тест.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [editor]

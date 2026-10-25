@@ -1,0 +1,64 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://Q7.32_SKYprav_3.1/skylab_clouds.gdshader" id="1_sh"]
+
+[resource]
+shader = ExtResource("1_sh")
+shader_parameter/sky_color = Color(0.32, 0.47, 0.68, 1)
+shader_parameter/use_sun_color_ramp = false
+shader_parameter/ramp_near_color = Color(0.95, 0.3, 0.25, 1)
+shader_parameter/ramp_far_color = Color(0.7, 0.08, 0.08, 1)
+shader_parameter/use_ambient_from_sky = false
+shader_parameter/ambient_sky_gain = 1.2
+shader_parameter/use_gradient_sky = true
+shader_parameter/cloud_light_direction = Vector3(-0.75, 0.5, -0.43)
+shader_parameter/cloud_light_color = Color(1, 0.97, 0.92, 1)
+shader_parameter/cloud_light_strength = 0.7
+shader_parameter/cloud_ambient_sky_color = Color(0.55, 0.63, 0.82, 1)
+shader_parameter/cloud_ambient_energy = 0.45
+shader_parameter/sun_visible = true
+shader_parameter/sun_size = 0.02
+shader_parameter/sun_softness = 0.25
+shader_parameter/sun_disk_color = Color(1, 0.98, 0.95, 1)
+shader_parameter/sun_intensity = 16.0
+shader_parameter/sun_halo_strength = 0.25
+shader_parameter/sun_halo_power = 250.0
+shader_parameter/hc_enabled = true
+shader_parameter/hc_use_world_anchor = true
+shader_parameter/hc_layer_bottom = 6000.0
+shader_parameter/hc_layer_top = 7200.0
+shader_parameter/hc_scale = 60000.0
+shader_parameter/hc_stretch = 3.5
+shader_parameter/hc_stretch_angle_deg = 25.0
+shader_parameter/hc_field_scale = 260000.0
+shader_parameter/hc_field_amp = 0.6
+shader_parameter/hc_coverage = 0.56
+shader_parameter/hc_softness = 0.22
+shader_parameter/hc_tau_per_km = 0.35
+shader_parameter/hc_curtain_start = 4000.0
+shader_parameter/hc_curtain_end = 14000.0
+shader_parameter/hc_offset = Vector3(0, 0, 0)
+shader_parameter/hc_color = Color(0.92, 0.93, 0.96, 1)
+shader_parameter/hc_detail_strength = 0.35
+shader_parameter/hc_detail_scale = 3000.0
+shader_parameter/hc_use_lighting = true
+shader_parameter/hc_light_gain = 1.0
+shader_parameter/hc_ambient_gain = 1.0
+shader_parameter/hc_debug = 0.0
+shader_parameter/sk_zenith = Vector3(0.015954, 0.022894, 0.060409)
+shader_parameter/sk_horizon = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_glow_col = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_glow_int = 0.3
+shader_parameter/sk_glow_exp = 6.0
+shader_parameter/sk_wedge_int = 0.35
+shader_parameter/sk_wedge_k = 4.0
+shader_parameter/sk_sun_dir = Vector3(0, 0, -1)
+shader_parameter/sk_dither = 1.0
+shader_parameter/sk_below_col = Vector3(0.0647, 0.0115, 0.0198)
+shader_parameter/sk_below_int = 0.55
+shader_parameter/sk_anti_col = Vector3(0.0202, 0.00718, 0.0152)
+shader_parameter/sk_low_dim = 0.25
+shader_parameter/sk_wedge_az = 3.0
+shader_parameter/sk_zen_lift = 2.0
+shader_parameter/sk_anti_p_lo = 0.6
+shader_parameter/sk_anti_p_hi = 3.0
