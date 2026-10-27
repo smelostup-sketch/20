@@ -1,10 +1,12 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
-[ext_resource type="Sky" path="res://Assets/sky/omega_volumetric_clouds_sky.tres" id="1_omega"]
+[ext_resource type="Sky" path="res://Assets/sky/preomega_sky.tres" id="1_sl_sky"]
+[ext_resource type="Script" path="res://Assets/sky/VeilSkyRig.gd" id="2_veil_rig"]
+[ext_resource type="Script" path="res://Assets/sky/VeilSkyPanel.gd" id="3_veil_panel"]
 
 [sub_resource type="Environment" id="Environment_skytest"]
 background_mode = 2
-sky = ExtResource("1_omega")
+sky = ExtResource("1_sl_sky")
 ambient_light_source = 3
 tonemap_mode = 2
 
@@ -23,10 +25,17 @@ environment = SubResource("Environment_skytest")
 transform = Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 2, 8)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.819, 0.4397, -0.3691, 0, 0.643, 0.766, 0.574, -0.6274, 0.5266, 0, 8, 0)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 8, 0)
 light_energy = 2.2
 shadow_enabled = true
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_skytest")
 surface_material_override/0 = SubResource("StandardMaterial3D_skytest")
+
+[node name="VeilSkyRig" type="Node" parent="."]
+script = ExtResource("2_veil_rig")
+wind_speed = 1500.0
+
+[node name="VeilSkyPanel" type="Node" parent="."]
+script = ExtResource("3_veil_panel")

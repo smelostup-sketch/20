@@ -39,7 +39,9 @@
 [ext_resource type="Script" uid="uid://py15yees6jx1" path="res://Scripts/UI/AIDebugLogPanel.gd" id="140_ai_log"]
 [ext_resource type="Script" path="res://Scripts/Environment/BushGrassComponent.gd" id="grass_comp"]
 [ext_resource type="PackedScene" path="res://Assets/ruins/platforma4k_lowtexture.glb" id="28_ruins"]
-[ext_resource type="Sky" path="res://Assets/sky/omega_volumetric_clouds_sky.tres" id="29_omega_sky"]
+[ext_resource type="Sky" path="res://Assets/sky/preomega_sky.tres" id="29_sl_sky"]
+[ext_resource type="Script" path="res://Assets/sky/VeilSkyRig.gd" id="30_veil_rig"]
+[ext_resource type="Script" path="res://Assets/sky/VeilSkyPanel.gd" id="31_veil_panel"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xh4up"]
 size = Vector3(0.996826, 1.82391, 0.376465)
@@ -89,7 +91,7 @@ size = Vector3(1.87, 0.59, 1.83)
 
 [sub_resource type="Environment" id="Environment_q28"]
 background_mode = 2
-sky = ExtResource("29_omega_sky")
+sky = ExtResource("29_sl_sky")
 ambient_light_source = 3
 tonemap_mode = 2
 ssao_enabled = false
@@ -368,9 +370,8 @@ shape = SubResource("BoxShape3D_l1bxr")
 environment = SubResource("Environment_q28")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1443329757]
-transform = Transform3D(0.819, 0.4397, -0.3691, 0, 0.643, 0.766, 0.574, -0.6274, 0.5266, 0, 8, 0)
-light_color = Color(1, 0.96, 0.9, 1)
-light_energy = 3.5
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 8, 0)
+light_energy = 2.2
 shadow_enabled = true
 
 [node name="PlayerUI" type="CanvasLayer" parent="." unique_id=991475073 groups=["player_ui"]]
@@ -422,3 +423,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.82, 5)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RuinsPlatformBody"]
 shape = SubResource("BoxShape3D_ruins28")
+
+[node name="VeilSkyRig" type="Node" parent="."]
+script = ExtResource("30_veil_rig")
+wind_speed = 1500.0
+
+[node name="VeilSkyPanel" type="Node" parent="."]
+script = ExtResource("31_veil_panel")
+start_visible = false

@@ -42,7 +42,8 @@ func _input(event: InputEvent) -> void:
 		yaw -= event.relative.x * mouse_sens
 		pitch += event.relative.y * mouse_sens * (-1.0 if invert_vertical else 1.0)
 		pitch = clampf(pitch, deg_to_rad(-pitch_limit), deg_to_rad(pitch_limit))
-	elif event is InputEventMouseButton:
+	elif event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		# колесо отвязано на время открытых меню (мышь VISIBLE): скролл панели не зумит камеру
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			distance = maxf(min_dist, distance - zoom_speed)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:

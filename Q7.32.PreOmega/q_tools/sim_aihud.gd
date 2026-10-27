@@ -1,8 +1,8 @@
 extends SceneTree
 ## Q7.18 — приёмка экранного журнала ИИ (AIDebugLogPanel):
 ##   1) панель существует и скрыта по умолчанию;
-##   2) тильда (KEY_QUOTELEFT) через событийный конвейер (_unhandled_input)
-##      переключает видимость туда-обратно;
+##   2) клавиша 0 (KEY_0, перенос с тильды в Q7.32) через событийный конвейер
+##      (_unhandled_input) переключает видимость туда-обратно;
 ##   3) после включения панель находит врага (группа "enemy") и в статусе есть
 ##      строки РЕАЛЬНО работающего ИИ: «мозг: состояние=», «UtilityAI: ВЫКЛЮЧЕН»;
 ##   4) живой бой наполняет ленту: «Решение движения» и «Намерение атаки»
@@ -33,10 +33,10 @@ func _initialize() -> void:
 	log_f = FileAccess.open("res://q_tools/sim_aihud_out.txt", FileAccess.WRITE)
 
 
-func _tilde(pressed: bool) -> void:
+func _hotkey(pressed: bool) -> void:
 	var ev := InputEventKey.new()
-	ev.keycode = KEY_QUOTELEFT
-	ev.physical_keycode = KEY_QUOTELEFT
+	ev.keycode = KEY_0
+	ev.physical_keycode = KEY_0
 	ev.pressed = pressed
 	ev.echo = false
 	Input.parse_input_event(ev)
@@ -71,11 +71,11 @@ func _process(_delta: float) -> bool:
 	elif frame == 4:
 		check("панель существует и скрыта по умолчанию",
 			panel != null and panel.get("panel_visible") == false)
-		_tilde(true)
+		_hotkey(true)
 	elif frame == 6:
-		_tilde(false) # отпускаем (камера тоже видит тильду — free look, безвредно)
+		_hotkey(false) # отпускаем (камера видит тот же ключ только если это её free_look — здесь KEY_0, безвредно)
 	elif frame == 10:
-		check("тильда включила панель (событийный конвейер _unhandled_input)",
+		check("клавиша 0 включила панель (событийный конвейер _unhandled_input)",
 			panel.get("panel_visible") == true)
 		var status: String = panel.get("_status_label").text
 		check("панель нашла врага и показывает мозг", status.contains("Враг:") and status.contains("мозг: состояние="))
@@ -88,9 +88,9 @@ func _process(_delta: float) -> bool:
 		check("лента: есть «Намерение атаки»", joined.contains("Намерение атаки"))
 		check("мозг реально подавал намерения: intents_sent=%d >= 1" % int(brain.get("intents_sent")),
 			int(brain.get("intents_sent")) >= 1)
-		_tilde(true)  # второе нажатие — выключение (доставка на следующем кадре)
+		_hotkey(true)  # второе нажатие — выключение (доставка на следующем кадре)
 	elif frame == 402:
-		check("второе нажатие тильды выключило панель", panel.get("panel_visible") == false)
+		check("второе нажатие клавиши 0 выключило панель", panel.get("panel_visible") == false)
 		log_f.store_line("SUMMARY passed=%d failed=%d" % [passed, failed])
 		log_f.close()
 		quit(0 if failed == 0 else 1)
