@@ -84,7 +84,7 @@ const ADAPTED := {
 	},
 }
 const SEQ := ["K0", "K1", "K2", "K3", "K4", "K5", "K6"]	# лестница K-ключей (SKY_TZ_LUT7 §2); ref2/O2 = support K4, не ключ
-const PRESET_ELEV := [-30.0, -13.5, -5.0, -1.5, 0.5, 4.0, 15.0]	# высота солнца по ключам (§2)
+const PRESET_ELEV := [-30.0, -13.5, -5.0, 0.3, 0.5, 4.0, 15.0]	# K3: +0.3 (солнце НАД горизонтом, баг р5)	# высота солнца по ключам (§2)
 const PRESET_AZIM := [180.0, 180.0, 180.0, 180.0, 180.0, 180.0, 180.0]
 const LADDER_NAMES := ["K0 глубокая ночь", "K1 астро-сумерки", "K2 синий час", "K3 контровой закат",
 	"K4 багровый закат", "K5 золотой час", "K6 поздний день"]
@@ -102,33 +102,33 @@ const THUMBS := ["N2.jpg", "N4.jpg", "N5.jpg", "ref1.png", "ref4.png", "ref3.png
 # shadow притемнён: из него выводятся sk_anti_col (самая тёмная точка) и sk_below_col.
 const NIGHT_ADAPTED := {
 	"K0": {
-		"zenith": Vector3(0.003687, 0.008865, 0.042967),
-		"horizon": Vector3(0.601533, 0.124189, 0.137061),
-		"glow": Vector3(1.814742, 0.644862, 0.591249),
-		"band": Vector3(0.191276, 0.037665, 0.071241),
-		"band2": Vector3(0.021797, 0.116866, 0.184574),
+		"zenith": Vector3(0.000886, 0.001921, 0.005799),
+		"horizon": Vector3(0.003206, 0.013163, 0.031508),
+		"glow": Vector3(2.210000, 2.040000, 2.040000),
+		"band": Vector3(0.004951, 0.072247, 0.107485),
+		"band2": Vector3(0.002702, 0.009457, 0.034871),
 		"lit": Vector3(0.006654, 0.037160, 0.136288),
-		"shadow": Vector3(0.002314, 0.006943, 0.028818),
+		"shadow": Vector3(0.001765, 0.005262, 0.020632),
 		"rim": Vector3(0.008093, 0.037160, 0.148779),
 	},
 	"K1": {
-		"zenith": Vector3(0.004274, 0.009490, 0.080545),
-		"horizon": Vector3(0.939707, 0.172269, 0.227607),
-		"glow": Vector3(2.122705, 1.386924, 1.386924),
-		"band": Vector3(0.172269, 0.037588, 0.132958),
-		"band2": Vector3(0.048136, 0.123022, 0.351032),
+		"zenith": Vector3(0.001106, 0.002154, 0.015241),
+		"horizon": Vector3(0.276519, 0.070545, 0.121227),
+		"glow": Vector3(2.210000, 2.040000, 2.040000),
+		"band": Vector3(0.057822, 0.015160, 0.042866),
+		"band2": Vector3(0.035545, 0.090684, 0.241053),
 		"lit": Vector3(0.115877, 0.097818, 0.992580),
-		"shadow": Vector3(0.014096, 0.017016, 0.233777),
+		"shadow": Vector3(0.002548, 0.004020, 0.030353),
 		"rim": Vector3(0.060409, 0.246447, 1.091338),
 	},
 	"K2": {
-		"zenith": Vector3(0.003710, 0.007956, 0.067176),
-		"horizon": Vector3(1.112381, 0.204393, 0.250449),
-		"glow": Vector3(2.171064, 1.546022, 1.433792),
-		"band": Vector3(0.177842, 0.046284, 0.135352),
-		"band2": Vector3(0.038560, 0.100642, 0.295744),
+		"zenith": Vector3(0.001415, 0.002478, 0.015383),
+		"horizon": Vector3(0.297533, 0.081107, 0.138905),
+		"glow": Vector3(2.295000, 2.125000, 2.125000),
+		"band": Vector3(0.069511, 0.020750, 0.059922),
+		"band2": Vector3(0.041974, 0.096450, 0.231603),
 		"lit": Vector3(0.188911, 0.118023, 1.065300),
-		"shadow": Vector3(0.006000, 0.020000, 0.340000),
+		"shadow": Vector3(0.003541, 0.006120, 0.042183),
 		"rim": Vector3(0.118023, 0.090465, 0.948150),
 	},
 }
@@ -146,14 +146,18 @@ const NIGHT_ADAPTED := {
 const SETTLE_FRAMES := 30
 
 const GROUND := {
-	"K0": {"key": Color(0.518, 0.728, 1.000), "e": 0.319, "bounce": Color(0.176, 0.583, 1.000), "be": 0.1026},
-	"K1": {"key": Color(0.364, 0.475, 1.000), "e": 0.172, "bounce": Color(0.375, 0.250, 1.000), "be": 0.0896},
-	"K2": {"key": Color(1.000, 0.616, 0.887), "e": 0.342, "bounce": Color(0.589, 0.271, 1.000), "be": 0.0999},
+	"K0": {"key": Color(0.333, 0.470, 0.684), "e": 0.0970, "bounce": Color(0.131, 0.348, 0.658), "be": 0.0312},
+	"K1": {"key": Color(0.224, 0.284, 0.652), "e": 0.0363, "bounce": Color(0.211, 0.146, 0.626), "be": 0.0189},
+	"K2": {"key": Color(0.686, 0.391, 0.603), "e": 0.0730, "bounce": Color(0.335, 0.164, 0.636), "be": 0.0213},
 	"K3": {"key": Color(1.0, 0.698, 0.478), "e": 1.4, "bounce": Color(0.761, 0.439, 0.290), "be": 0.4},
 	"K4": {"key": Color(1.0, 0.541, 0.353), "e": 2.2, "bounce": Color(0.831, 0.290, 0.196), "be": 0.4},
 	"K5": {"key": Color(1.0, 0.851, 0.627), "e": 2.0, "bounce": Color(0.878, 0.690, 0.502), "be": 0.4},
 	"K6": {"key": Color(1.0, 0.941, 0.816), "e": 1.8, "bounce": Color(0.941, 0.863, 0.784), "be": 0.4},
 }
+# SUNARC (р6): arc_w = вес радиальной рампы (дуги от солнца); окна band/band2 у K0-K2
+# заданы В ЕДИНИЦАХ u = угол_от_солнца/π (ступени rise-only: horizon→band→band2→zen_mid
+# →anti); у K3-K6 (arc_w=0) те же поля работают в прежних h-единицах. band2_hi..+0.18 =
+# окно среднего купола, 0.75-0.97 = окно антисоляра (константы шейдера).
 # Форма градиента купола по K-ключам (feedback 27.10.26 «скудный градиент»):
 # wedge/glow = ядро и клин зари (у солнца), zen_lift = средняя точка полюсов,
 # low_dim = притемнение купола при низком солнце, anti_p_lo = ширина тёмного
@@ -162,40 +166,40 @@ const GROUND := {
 # K0-K2 подобраны симулятором шейдера (scratch/tune3.py) под описание заказчика:
 # K1 — белое ядро ~1°, K2 — шире и ниже (солнце ещё не зашло), K0 — широкая полоса N2.
 const SHAPE := {
-	"K0": {"wedge_int": 0.95, "wedge_az": 2.2, "wedge_k": 12.0, "glow_int": 1.05, "glow_exp": 10.0,
-		"zen_lift": 1.3, "low_dim": 0.30, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 0.95, "band_lo": 0.06, "band_hi": 0.21, "band2_w": 0.98, "band2_lo": 0.17, "band2_hi": 0.55},
-	"K1": {"wedge_int": 0.90, "wedge_az": 3.0, "wedge_k": 24.0, "glow_int": 1.50, "glow_exp": 56.0,
-		"zen_lift": 1.35, "low_dim": 0.25, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 1.00, "band_lo": 0.05, "band_hi": 0.26, "band2_w": 0.95, "band2_lo": 0.19, "band2_hi": 0.46},
-	"K2": {"wedge_int": 1.00, "wedge_az": 2.6, "wedge_k": 20.0, "glow_int": 0.95, "glow_exp": 60.0,
-		"zen_lift": 1.25, "low_dim": 0.22, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 1.00, "band_lo": 0.08, "band_hi": 0.30, "band2_w": 0.95, "band2_lo": 0.24, "band2_hi": 0.50},
+	"K0": {"wedge_int": 0.0, "wedge_az": 2.2, "wedge_k": 14.0, "glow_int": 0.0, "glow_exp": 12.0,
+		"zen_lift": 4.0, "low_dim": 0.30, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+		"band_w": 0.95, "band_lo": 0.19, "band_hi": 0.32, "band2_w": 0.98, "band2_lo": 0.30, "band2_hi": 0.48, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.85, "arc_w": 1.0, "arc_st": 1.8},
+	"K1": {"wedge_int": 0.95, "wedge_az": 3.0, "wedge_k": 70.0, "glow_int": 0.5, "glow_exp": 80.0,
+		"zen_lift": 6.0, "low_dim": 0.25, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+		"band_w": 1.00, "band_lo": 0.10, "band_hi": 0.24, "band2_w": 0.95, "band2_lo": 0.22, "band2_hi": 0.40, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.90, "arc_w": 1.0, "arc_st": 2.0},
+	"K2": {"wedge_int": 0.90, "wedge_az": 2.6, "wedge_k": 35.0, "glow_int": 0.25, "glow_exp": 50.0,
+		"zen_lift": 5.0, "low_dim": 0.22, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+		"band_w": 1.00, "band_lo": 0.10, "band_hi": 0.30, "band2_w": 0.95, "band2_lo": 0.26, "band2_hi": 0.46, "top_w": 0.85, "top_lo": 0.62, "top_hi": 0.97, "arc_w": 1.0, "arc_st": 2.0},
 	"K3": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55},
+		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0, "arc_st": 1.0},
 	"K4": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55},
+		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0, "arc_st": 1.0},
 	"K5": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55},
+		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0, "arc_st": 1.0},
 	"K6": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55},
+		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0, "arc_st": 1.0},
 }
 const PANEL_W := 352.0
 # порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
 const SHAPE_KEYS := ["wedge_int", "wedge_az", "wedge_k", "glow_int", "glow_exp", "zen_lift",
 	"low_dim", "anti_p_lo", "anti_p_hi", "below_int", "band_w", "band_lo", "band_hi",
-	"band2_w", "band2_lo", "band2_hi"]
+	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi", "arc_w", "arc_st"]
 
 # Mid-стоп рампы P(dir) по K-ключам (§8.1; K0-K2 — извлечение с N-рефов, K3-K6 —
 # первый проход §8.1; всё inv-Filmic как M1)
 const MID := {
-	"K0": Vector3(0.007598, 0.049869, 0.192106),
-	"K1": Vector3(0.010809, 0.095943, 0.428422),
-	"K2": Vector3(0.090465, 0.086932, 1.015968),
+	"K0": Vector3(0.004733, 0.018365, 0.056192),
+	"K1": Vector3(0.007075, 0.035004, 0.108229),
+	"K2": Vector3(0.035103, 0.034011, 0.208031),
 	"K3": Vector3(0.078501, 0.054996, 0.164984),
 	"K4": Vector3(0.107580, 0.036102, 0.078501),
 	"K5": Vector3(0.246447, 0.188911, 0.467554),
@@ -203,32 +207,51 @@ const MID := {
 }
 # Вуаль по K-ключам (§8.2): master/curve/sun/sun_exp/lift + warm (display-hex → Color)
 const VEILP := {
-	"K0": {"master": 0.05, "curve": 4.0, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0, 0, 0, 1), "moon": 0.5},
-	"K1": {"master": 0.12, "curve": 3.0, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.039, 0.031, 0.078, 1), "moon": 0.35},
-	"K2": {"master": 0.25, "curve": 2.5, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.102, 0.063, 0.141, 1), "moon": 0.2},
-	"K3": {"master": 0.55, "curve": 2.0, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05},
-	"K4": {"master": 0.6, "curve": 2.0, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0},
-	"K5": {"master": 0.5, "curve": 2.2, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0},
-	"K6": {"master": 0.4, "curve": 2.5, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0},
+	# floor = зенитный пол высотной маски (плита над головой укрывает звёзды/луну),
+	# refract = преломление небесных тел градиентом плотности (р3 п.2); K3-K6 = 0/0 —
+	# побитово прежний вид; master ночей чуть поднят, чтобы укрытие читалось.
+	"K0": {"master": 0.05, "curve": 4.0, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0, 0, 0, 1), "moon": 0.5, "floor": 0.30, "refract": 0.25},
+	"K1": {"master": 0.18, "curve": 3.0, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.039, 0.031, 0.078, 1), "moon": 0.35, "floor": 0.35, "refract": 0.35},
+	"K2": {"master": 0.32, "curve": 2.5, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.102, 0.063, 0.141, 1), "moon": 0.2, "floor": 0.45, "refract": 0.40},
+	"K3": {"master": 0.55, "curve": 2.0, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "floor": 0.22, "refract": 0.0},
+	"K4": {"master": 0.6, "curve": 2.0, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.25, "refract": 0.0},
+	"K5": {"master": 0.5, "curve": 2.2, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.22, "refract": 0.0},
+	"K6": {"master": 0.4, "curve": 2.5, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "floor": 0.18, "refract": 0.0},
 }
 
 # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
 # звёзды (интенсивность). Для K0-K2 диск ниже горизонта — гасится vis-гейтом шейдера.
 const SUNMOON := {
 	"K0": {"disc": Vector3(1.0, 0.914, 0.753), "size": 1.5, "core": 2.0, "mphase": 1.0,
-		"mcol": Vector3(0.933, 0.949, 1.0), "mglow": 0.35, "star": 1.0, "streak": 0.0, "mstreak": 0.35},
+		"mcol": Vector3(0.933, 0.949, 1.0), "mglow": 0.35, "star": 1.0, "streak": 0.0},
 	"K1": {"disc": Vector3(1.0, 0.914, 0.753), "size": 1.5, "core": 2.0, "mphase": 1.0,
-		"mcol": Vector3(0.847, 0.878, 0.961), "mglow": 0.2, "star": 0.7, "streak": 0.0, "mstreak": 0.25},
+		"mcol": Vector3(0.847, 0.878, 0.961), "mglow": 0.2, "star": 0.7, "streak": 0.0},
 	"K2": {"disc": Vector3(1.0, 0.914, 0.753), "size": 1.5, "core": 2.0, "mphase": 1.0,
-		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.1, "star": 0.25, "streak": 0.0, "mstreak": 0.15},
+		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.1, "star": 0.25, "streak": 0.0},
 	"K3": {"disc": Vector3(1.0, 0.914, 0.753), "size": 1.5, "core": 2.0, "mphase": 0.0,
-		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.05, "streak": 0.2, "mstreak": 0.0},
+		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.05, "streak": 0.2},
 	"K4": {"disc": Vector3(1.0, 0.953, 0.816), "size": 1.8, "core": 5.0, "mphase": 0.0,
-		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.5, "mstreak": 0.0},
+		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.5},
 	"K5": {"disc": Vector3(1.0, 0.941, 0.784), "size": 2.2, "core": 6.0, "mphase": 0.0,
-		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.3, "mstreak": 0.0},
+		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.3},
 	"K6": {"disc": Vector3(1.0, 0.965, 0.910), "size": 2.0, "core": 5.0, "mphase": 0.0,
-		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.15, "mstreak": 0.0},
+		"mcol": Vector3(0.753, 0.784, 0.910), "mglow": 0.0, "star": 0.0, "streak": 0.15},
+}
+
+# Положение луны по K-ключам (фидбек 27.10.26 раунд 2: луна НЕ привязана к антисоляру,
+# независима от солнца, может быть одновременно с ним): K0 — высокая луна hero-рефа N2;
+# K1/K2 — ниже и западнее (полная фаза, видна); K3-K6 — дневные позиции в восточной
+# половине неба (фаза 0 по §8.4 — тело существует, диск не виден, пока фаза не поднята).
+# Слайдеры «Высота/Азимут луны» пишут sk_moon_dir поверх лестницы; ночью (elev солнца
+# ≤ -2°) ключевой свет сцены разворачивается НА луну (логика освещения §6).
+const MOONPOS := {
+	"K0": {"elev": 62.0, "azim": 160.0},
+	"K1": {"elev": 40.0, "azim": 205.0},
+	"K2": {"elev": 26.0, "azim": 225.0},
+	"K3": {"elev": 55.0, "azim": 250.0},
+	"K4": {"elev": 50.0, "azim": 260.0},
+	"K5": {"elev": 45.0, "azim": 270.0},
+	"K6": {"elev": 40.0, "azim": 280.0},
 }
 
 # Пресеты вуали бенча (SKYHC-3.1/3.2) — дословно из CloudsTestBench.gd
@@ -272,6 +295,10 @@ const VEIL_ROWS := [
 	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
 	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
 	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
+	{"u": "veil_zen_floor", "n": "Пол вуали у зенита", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+	 "h": "Доля вуали над головой: плита существует и у зенита, поэтому укрывает звёзды и луну там; 0 = прежний вид (зенит чист, K3-K6)"},
+	{"u": "veil_refract", "n": "Преломление в вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+	 "h": "Небесные тела ЗА вуалью: направление звёзд/луны/солнца отклоняется градиентом плотности плиты — дрожат и плывут на кромках образований; 0 = без искажения (K3-K6)"},
 	{"u": "veil_master", "n": "Сила вуали (состояние)", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.6,
 	 "h": "Общая сила слоя вуали (таблица §8.2 по K-ключам; ночь K0 → 0.05 — зенит чистый)"},
 	{"u": "veil_curve", "n": "Высотная маска", "a": 0.5, "b": 6.0, "s": 0.05, "d": 2.0,
@@ -323,6 +350,10 @@ var _panel: PanelContainer = null
 var _scroll: ScrollContainer = null
 var _elev_slider: HSlider = null
 var _azim_slider: HSlider = null
+var _moon_elev_slider: HSlider = null
+var _moon_azim_slider: HSlider = null
+var _cur_moon_elev := 50.0
+var _cur_moon_azim := 0.0
 var _blend_slider: HSlider = null
 var _info: Label = null
 var _overlay: TextureRect = null
@@ -473,6 +504,20 @@ func _build_ui() -> void:
 			_set_sun(_cur_elev, v))
 	_track_drag(_elev_slider)
 	_track_drag(_azim_slider)
+	_moon_elev_slider = _row_slider(vbox, "Высота луны, °", -35.0, 89.5, 0.1, _cur_moon_elev,
+		"Высота луны (градусы): пишет sk_moon_dir НЕЗАВИСИМО от солнца (27.10.26 р.2); ночью ключевой свет сцены разворачивается на луну",
+		func(v: float) -> void:
+			if _writing:
+				return
+			_set_moon(v, _cur_moon_azim))
+	_moon_azim_slider = _row_slider(vbox, "Азимут луны, °", 0.0, 360.0, 0.5, _cur_moon_azim,
+		"Азимут луны (градусы): пишет sk_moon_dir НЕЗАВИСИМО от солнца; луна и солнце могут быть на небе одновременно",
+		func(v: float) -> void:
+			if _writing:
+				return
+			_set_moon(_cur_moon_elev, v))
+	_track_drag(_moon_elev_slider)
+	_track_drag(_moon_azim_slider)
 	var tint := CheckButton.new()
 	tint.text = "Красить вуаль состоянием (lit/zen)"
 	tint.button_pressed = _tint_veil
@@ -576,6 +621,7 @@ func _build_ui() -> void:
 	wind.max_value = 3000.0
 	wind.step = 10.0
 	wind.value = float(_rig.get("wind_speed")) if (_rig != null and _rig.get("wind_speed") != null) else 0.0
+	wind.scrollable = false	# колесо мыши не трогает ползунок (меню 8, фидбек 27.10.26 р.2)
 	vbox.add_child(_row_labeled("Ветер (дрейф вуали), м/с", wind,
 		"Скорость CPU-дрейфа поля вуали (пишет wind_speed рига VeilSkyRig; 0 = статично)"))
 	wind.value_changed.connect(func(v: float) -> void:
@@ -633,6 +679,8 @@ func _row_slider(parent: Control, label_text: String, minv: float, maxv: float, 
 	sl.step = stepv
 	sl.value = init
 	sl.custom_minimum_size = Vector2(0, 22)
+	sl.scrollable = false	# фидбек 27.10.26 р.2: колесо мыши НЕ трогает ползунки меню 8 —
+					# прокручивает только правый вертикальный скроллбар ScrollContainer
 	var val := Label.new()
 	val.custom_minimum_size = Vector2(56, 0)
 	val.add_theme_font_size_override("font_size", 11)
@@ -775,6 +823,9 @@ func _apply_t(t: float) -> void:
 		_sky_mat.set_shader_parameter("veil_sun_exp", lerpf(float(v0["sun_exp"]), float(v1["sun_exp"]), f))
 		_sky_mat.set_shader_parameter("veil_lift", lerpf(float(v0["lift"]), float(v1["lift"]), f))
 		_sky_mat.set_shader_parameter("veil_warm", (v0["warm"] as Color).lerp(v1["warm"] as Color, f))
+		# вуаль между небом и небесными телами (р3 п.2): пол зенита и преломление
+		_sky_mat.set_shader_parameter("veil_zen_floor", lerpf(float(v0["floor"]), float(v1["floor"]), f))
+		_sky_mat.set_shader_parameter("veil_refract", lerpf(float(v0["refract"]), float(v1["refract"]), f))
 		# §10.6: солнце/луна/звёзды — из той же лестницы (§8.4)
 		var s0: Dictionary = SUNMOON[SEQ[i0]]
 		var s1: Dictionary = SUNMOON[SEQ[i1]]
@@ -786,7 +837,6 @@ func _apply_t(t: float) -> void:
 		_sky_mat.set_shader_parameter("moon_glow_int", lerpf(float(s0["mglow"]), float(s1["mglow"]), f))
 		_sky_mat.set_shader_parameter("star_intensity", lerpf(float(s0["star"]), float(s1["star"]), f))
 		_sky_mat.set_shader_parameter("streak_int", lerpf(float(s0["streak"]), float(s1["streak"]), f))
-		_sky_mat.set_shader_parameter("moon_streak_int", lerpf(float(s0["mstreak"]), float(s1["mstreak"]), f))
 		_sky_mat.set_shader_parameter("veil_moon", lerpf(float(v0["moon"]), float(v1["moon"]), f))
 		# связка света: lit как цвет источника (солнце/ореол); вуали отдельная заливка
 		# больше не нужна — её цвет = P(dir) (§10.2)
@@ -823,6 +873,11 @@ func _apply_t(t: float) -> void:
 	var elev := lerpf(PRESET_ELEV[i0], PRESET_ELEV[i1], f)
 	var azim := lerpf(PRESET_AZIM[i0], PRESET_AZIM[i1], f)
 	_set_sun(elev, azim)
+	# луна — из своей лестницы (независима от солнца, 27.10.26 р.2)
+	var m0: Dictionary = MOONPOS[SEQ[i0]]
+	var m1: Dictionary = MOONPOS[SEQ[i1]]
+	_set_moon(lerpf(float(m0["elev"]), float(m1["elev"]), f),
+			lerpf(float(m0["azim"]), float(m1["azim"]), f))
 	_update_info()
 
 
@@ -831,32 +886,69 @@ func _apply_t(t: float) -> void:
 func _set_sun(elev: float, azim: float) -> void:
 	_cur_elev = clampf(elev, -35.0, 89.5)	# K0 = -30° (ночь), прежний clamp -15 резал лестницу
 	_cur_azim = azim
-	var e := deg_to_rad(_cur_elev)
-	var a := deg_to_rad(_cur_azim)
-	var dir := Vector3(cos(e) * sin(a), sin(e), cos(e) * cos(a))
-	# feedback 25.10.26: ночью (солнце ниже -2°) игровой ключ светит С ЛУНЫ
-	# (антисолярное направление) — иначе свет шёл из-под земли и луна «не влияла на мир»
-	var light_dir := dir if _cur_elev > -2.0 else -dir
-	if _light != null:
-		_writing = true
-		var t := Transform3D()
-		t = t.looking_at(-light_dir, Vector3.UP)
-		t.origin = _light.global_position
-		_light.global_transform = t
-		if _elev_slider != null:
-			_elev_slider.value = _cur_elev
-		if _azim_slider != null:
-			_azim_slider.value = _cur_azim
-		_writing = false
-		if _sky_mat != null:
-			_sky_mat.set_shader_parameter("sk_sun_dir", dir)
-		_kick_settle()
+	var dir := _dir_from_elev_azim(_cur_elev, _cur_azim)
+	# feedback 25.10.26: ночью (солнце ниже -2°) игровой ключ светит С ЛУНЫ — иначе свет
+	# шёл из-под земли и луна «не влияла на мир». 27.10.26 р.2: луна независима — свет
+	# разворачивается на ФАКТИЧЕСКОЕ направление луны (sk_moon_dir), а не на антисоляр.
+	var light_dir := dir if _cur_elev > -2.0 else _moon_dir()
+	_point_light_to(light_dir)
+	_writing = true
+	if _elev_slider != null:
+		_elev_slider.value = _cur_elev
+	if _azim_slider != null:
+		_azim_slider.value = _cur_azim
+	_writing = false
+	if _sky_mat != null:
+		_sky_mat.set_shader_parameter("sk_sun_dir", dir)
+	_kick_settle()
+	_update_info()
+
+
+## Направление НА солнце/луну из высоты/азимута (конвенция панели: azim 180° = -Z).
+func _dir_from_elev_azim(elev_deg: float, azim_deg: float) -> Vector3:
+	var e := deg_to_rad(elev_deg)
+	var a := deg_to_rad(azim_deg)
+	return Vector3(cos(e) * sin(a), sin(e), cos(e) * cos(a))
+
+
+func _moon_dir() -> Vector3:
+	return _dir_from_elev_azim(_cur_moon_elev, _cur_moon_azim)
+
+
+## Разворот DirectionalLight3D на источник (свет смотрит вдоль -light_dir).
+func _point_light_to(light_dir: Vector3) -> void:
+	if _light == null:
+		return
+	var t := Transform3D()
+	t = t.looking_at(-light_dir, Vector3.UP)
+	t.origin = _light.global_position
+	_light.global_transform = t
+
+
+## Луна (фидбек 27.10.26 р.2): независимое положение. Пишет sk_moon_dir; ночью
+## (elev солнца ≤ -2°) ключевой свет сцены следует за луной (та же логика освещения,
+## что «ночью ключ светит с луны», но без жёсткой привязки луны к антисоляру).
+func _set_moon(elev: float, azim: float) -> void:
+	_cur_moon_elev = clampf(elev, -35.0, 89.5)
+	_cur_moon_azim = azim
+	if _sky_mat != null:
+		_sky_mat.set_shader_parameter("sk_moon_dir", _moon_dir())
+	if _cur_elev <= -2.0:
+		_point_light_to(_moon_dir())
+	_writing = true
+	if _moon_elev_slider != null:
+		_moon_elev_slider.value = _cur_moon_elev
+	if _moon_azim_slider != null:
+		_moon_azim_slider.value = _cur_moon_azim
+	_writing = false
+	_kick_settle()
 	_update_info()
 
 
 func _update_info() -> void:
 	if _info != null:
-		_info.text = "t=%.2f (%s)  elev=%+.1f°  azim=%.1f°" % [_t, _state_tag, _cur_elev, _cur_azim]
+		_info.text = "t=%.2f (%s)  sun %+.1f°/%.1f°  moon %+.1f°/%.1f°" % [
+			_t, _state_tag, _cur_elev, _cur_azim, _cur_moon_elev, _cur_moon_azim]
 
 
 func _show_overlay(idx: int) -> void:
@@ -978,24 +1070,28 @@ func _process(_delta: float) -> void:
 	# записывалось в sk_sun_dir, купол разворачивался, а «солнце» вставало на антисоляр.
 	if _light != null and not _writing and not _dragging:
 		var d := _light.global_transform.basis.z
-		var el := rad_to_deg(asin(clampf(d.y, -1.0, 1.0)))
-		var sun := d
-		if el >= 2.0 and _cur_elev < -2.0:
-			sun = -d
-		var elev := rad_to_deg(asin(clampf(sun.y, -1.0, 1.0)))
-		var azim := rad_to_deg(atan2(sun.x, sun.z))
-		if absf(elev - _cur_elev) > 0.2 or absf(azim - _cur_azim) > 0.2:
-			_cur_elev = clampf(elev, -35.0, 89.5)	# K0 = -30° (ночь), прежний clamp -15 резал лестницу
-			_cur_azim = azim
-			_writing = true
-			if _elev_slider != null:
-				_elev_slider.value = _cur_elev
-			if _azim_slider != null:
-				_azim_slider.value = _cur_azim
-			_writing = false
-			if _sky_mat != null:
-				_sky_mat.set_shader_parameter("sk_sun_dir", sun)
-			_update_info()
+		if _cur_elev > -2.0:
+			# днём ключ кодирует СОЛНЦЕ — read-only синк солнца (конвенция бенча, порог 0.2°)
+			var elev := rad_to_deg(asin(clampf(d.y, -1.0, 1.0)))
+			var azim := rad_to_deg(atan2(d.x, d.z))
+			if absf(elev - _cur_elev) > 0.2 or absf(azim - _cur_azim) > 0.2:
+				_cur_elev = clampf(elev, -35.0, 89.5)	# K0 = -30° (ночь), прежний clamp -15 резал лестницу
+				_cur_azim = azim
+				_writing = true
+				if _elev_slider != null:
+					_elev_slider.value = _cur_elev
+				if _azim_slider != null:
+					_azim_slider.value = _cur_azim
+				_writing = false
+				if _sky_mat != null:
+					_sky_mat.set_shader_parameter("sk_sun_dir", d)
+				_update_info()
+		else:
+			# ночью ключ кодирует ЛУНУ (27.10.26 р.2): внешний разворот света = правка луны
+			var mel := rad_to_deg(asin(clampf(d.y, -1.0, 1.0)))
+			var maz := rad_to_deg(atan2(d.x, d.z))
+			if absf(mel - _cur_moon_elev) > 0.2 or absf(maz - _cur_moon_azim) > 0.2:
+				_set_moon(mel, maz)
 	if _settle > 0:
 		_settle -= 1
 		if _settle == 0 and _sky != null:
