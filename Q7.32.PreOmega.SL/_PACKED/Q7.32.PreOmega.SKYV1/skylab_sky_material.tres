@@ -1,0 +1,16 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://Q7.32_SKYprav_3.1/skylab_sky.gdshader" id="1_skylab_sky"]
+
+[resource]
+shader = ExtResource("1_skylab_sky")
+shader_parameter/sk_zenith = Vector3(0.015954, 0.022894, 0.060409)
+shader_parameter/sk_horizon = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_glow_col = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_glow_int = 0.30
+shader_parameter/sk_glow_exp = 6.0
+shader_parameter/sk_wedge_int = 0.15
+shader_parameter/sk_wedge_k = 4.0
+shader_parameter/sk_grad_pow = 1.6
+shader_parameter/sk_sun_dir = Vector3(0, 0, -1)
+shader_parameter/sk_dither = 1.0
