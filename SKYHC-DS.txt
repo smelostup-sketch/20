@@ -1,0 +1,245 @@
+// ============================================================================
+// veil.gdshaderinc — SKYHC-5 (senior rewrite)
+// ============================================================================
+// Модуль вуали для `shader_type sky`. Содержит ТОЛЬКО вуаль:
+//   - поле плотности (Perlin-Worley + Worley деталь)
+//   - опциональное самозатенение внутри слоя
+//   - освещение вуали (прямой свет + ambient)
+//   - премноженный композит с фоном+солнцем хоста
+//
+// Контракт с хостом (объявить до #include):
+//   uniform vec3  cloud_light_direction;             // нормализуется внутри
+//   uniform vec3  cloud_light_color   : source_color;
+//   uniform float cloud_light_strength;
+//   uniform vec3  cloud_ambient_sky_color : source_color;
+//   uniform float cloud_ambient_energy;
+//
+// Интеграция в `void sky()` хоста:
+//   vec3 bg_sun = bg + sunbg;                        // градиент + диск/гало
+//   float a, d, tau;
+//   vec3 c = DS_veil_composite(bg_sun, dir, a, d, tau);
+//   COLOR = (hc_debug > 0.5) ? DS_veil_debug_color(hc_debug, a, d, tau) : c;
+//
+// Примечание: `POSITION` — builtin sky-шейдера. Модуль НЕ для spatial/canvas.
+// ============================================================================
+
+// --- Текстуры вуали ---
+uniform sampler3D noise_pw     : repeat_enable, filter_linear;  // Perlin-Worley 128^3
+uniform sampler3D noise_worley : repeat_enable, filter_linear;  // Worley 32^3
+
+// --- Uniform'ы вуали (имена сохранены) ---
+uniform bool  hc_enabled           = false;
+uniform bool  hc_use_world_anchor  = true;
+uniform float hc_layer_bottom      = 6000.0;
+uniform float hc_layer_top         = 7200.0;
+uniform float hc_scale             = 60000.0;
+uniform float hc_stretch           = 3.5;
+uniform float hc_stretch_angle_deg = 25.0;
+uniform float hc_field_scale       = 260000.0;
+uniform float hc_field_amp         = 0.60;
+uniform float hc_coverage          = 0.56;
+uniform float hc_softness          = 0.22;
+uniform float hc_tau_per_km        = 0.35;
+uniform float hc_curtain_start     = 4000.0;
+uniform float hc_curtain_end       = 14000.0;
+uniform vec3  hc_offset            = vec3(0.0);
+uniform vec3  hc_color             : source_color = vec3(0.92, 0.93, 0.96);
+uniform float hc_detail_strength   = 0.0;
+uniform float hc_detail_scale      = 3000.0;
+uniform bool  hc_use_lighting      = false;
+uniform float hc_light_gain        = 1.0;
+uniform float hc_ambient_gain      = 1.0;
+uniform bool  hc_use_shadowing     = false;
+uniform float hc_shadow_strength   = 0.75;
+uniform float hc_shadow_max_dist   = 12000.0;
+uniform float hc_debug             = 0.0;
+
+// --- DS: новые ручки ---
+uniform float DS_hc_max_sample_dist = 30000.0;  // ограничение середины пути у горизонта
+uniform float DS_hc_jitter          = 0.0;      // 0 = выкл; >0 разбивает бандинг
+uniform float DS_hc_alpha_scale     = 1.0;      // 0..1, для fade / LOD
+
+// ============================================================================
+// Внутренности
+// ============================================================================
+
+const float DS_HC_EPS = 1e-6;
+
+// Кэш инвариантов на один вызов DS_veil_composite. Строится 1 раз на пиксель;
+// экономит 6 делений и 2 тригонометрических вызова на каждый сэмпл плотности
+// (а сэмплов по умолчанию 1 + до 2 на самозатенение).
+struct DS_VeilCtx {
+    float ca;              // cos(угла вытянутости)
+    float sa;              // sin(угла вытянутости)
+    float inv_stretch;
+    float inv_scale;
+    float inv_field_scale;
+    float inv_detail_scale;
+    float cov;
+    float soft;
+    float tau_per_km;
+    float top;             // верх плиты (защищённый от вырождения)
+    vec3  offset;
+};
+
+DS_VeilCtx DS_build_ctx() {
+    DS_VeilCtx c;
+    float a = radians(hc_stretch_angle_deg);
+    c.ca = cos(a);
+    c.sa = sin(a);
+    c.inv_stretch       = 1.0 / max(hc_stretch, 0.05);
+    c.inv_scale         = 1.0 / max(hc_scale, 1.0);
+    c.inv_field_scale   = 1.0 / max(hc_field_scale, 1.0);
+    c.inv_detail_scale  = 1.0 / max(hc_detail_scale, 1.0);
+    c.cov        = clamp(hc_coverage, 0.0, 1.0);
+    c.soft       = max(hc_softness, 1e-4);
+    c.tau_per_km = max(hc_tau_per_km, 0.0);
+    c.top        = hc_layer_bottom + max(hc_layer_top - hc_layer_bottom, 1e-4);
+    c.offset     = hc_offset;
+    return c;
+}
+
+// Явный smoothstep. Умеет обратный [lo, hi] — GLSL smoothstep для edge0>=edge1
+// не определён, а нам это нужно (защита в depth-ветках).
+float DS_sstep(float lo, float hi, float x) {
+    float t = clamp((x - lo) / (hi - lo), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
+}
+
+// Пересечение луча с плитой [bottom, top] в координатах origin.
+// Возвращает false для: параллельного луча, взгляда вниз, камеры ниже слоя.
+bool DS_layer_interval(vec3 dir, float bottom, float top, out float t_near, out float t_far) {
+    t_near = 0.0; t_far = 0.0;
+    if (abs(dir.y) <= DS_HC_EPS) return false;
+    float t1 = bottom / dir.y;
+    float t2 = top    / dir.y;
+    t_near = max(min(t1, t2), 0.0);
+    t_far  = max(t1, t2);
+    return t_far > t_near;
+}
+
+// Поворот в систему растяжения, сжатие вдоль гряд, обратный поворот.
+// Вся тригонометрия и 1/stretch взяты из ctx.
+vec3 DS_veil_coord(vec3 p, DS_VeilCtx c) {
+    vec3 q = p + c.offset;
+    float x1 =  q.x * c.ca + q.z * c.sa;
+    float z1 = -q.x * c.sa + q.z * c.ca;
+    x1 *= c.inv_stretch;
+    return vec3(x1 * c.ca - z1 * c.sa, q.y, x1 * c.sa + z1 * c.ca);
+}
+
+float DS_veil_density(vec3 p, DS_VeilCtx c) {
+    vec3  q     = DS_veil_coord(p, c);
+    float shape = texture(noise_pw, q * c.inv_scale).r;
+    float field = texture(noise_pw, q * c.inv_field_scale).r;
+    float cov   = clamp(c.cov + hc_field_amp * (field - 0.5) * 2.0, 0.0, 1.0);
+    float n     = shape;
+    if (hc_detail_strength > 0.0) {
+        vec3  q0     = p + c.offset;
+        float det    = texture(noise_worley, q0 * c.inv_detail_scale).r;
+        float w_edge = clamp(1.0 - abs(shape - cov) / c.soft, 0.0, 1.0);
+        n = shape - hc_detail_strength * (det - 0.5) * 2.0 * c.soft * w_edge;
+    }
+    return DS_sstep(cov - c.soft, cov + c.soft, n);
+}
+
+// Пропускание внутри слоя. Две фиксированные стратификации (0.25 / 0.75).
+// Детерминированно — джиттер здесь давал бы мерцание при движении камеры;
+// джиттерится только основная выборка (DS_hc_jitter).
+float DS_veil_shadow_transmittance(vec3 p, vec3 ldir, DS_VeilCtx c) {
+    float max_dist = max(hc_shadow_max_dist, 0.0);
+    if (max_dist <= DS_HC_EPS) return 1.0;
+
+    float boundary_dist = max_dist;
+    if (abs(ldir.y) > DS_HC_EPS) {
+        float to_boundary = (ldir.y > 0.0)
+            ? (c.top - p.y) / ldir.y
+            : (hc_layer_bottom - p.y) / ldir.y;
+        boundary_dist = min(boundary_dist, max(to_boundary, 0.0));
+    }
+    if (boundary_dist <= DS_HC_EPS) return 1.0;
+
+    float d1 = DS_veil_density(p + ldir * (boundary_dist * 0.25), c);
+    float d2 = DS_veil_density(p + ldir * (boundary_dist * 0.75), c);
+    float mean_density = 0.5 * (d1 + d2);
+    float tau_light    = mean_density * c.tau_per_km * (boundary_dist * 0.001);
+    return exp(-tau_light * clamp(hc_shadow_strength, 0.0, 1.0));
+}
+
+// Освещение вуали. Фазовая функция — «мягкий Henyey» по cos(view, light).
+// C9 ramp/gradient не здесь: если хост хочет их применить, он до вызова
+// красит cloud_light_color / cloud_ambient_sky_color.
+const float DS_HC_TERM_LO     = -0.35;
+const float DS_HC_TERM_HI     =  0.55;
+const float DS_HC_SHADE_FLOOR =  0.60;
+
+vec3 DS_veil_lit_color(vec3 dir, vec3 ldir, vec3 sample_pos, DS_VeilCtx c) {
+    float cos_theta = dot(dir, ldir);
+    float shade     = mix(DS_HC_SHADE_FLOOR, 1.0,
+                          DS_sstep(DS_HC_TERM_LO, DS_HC_TERM_HI, cos_theta));
+    float shadow_t  = hc_use_shadowing
+        ? DS_veil_shadow_transmittance(sample_pos, ldir, c)
+        : 1.0;
+    vec3 direct  = cloud_light_color        * (cloud_light_strength   * shade * shadow_t) * hc_light_gain;
+    vec3 ambient = cloud_ambient_sky_color  * (cloud_ambient_energy   * hc_ambient_gain);
+    return hc_color * (direct + ambient);
+}
+
+// ============================================================================
+// Публичный API
+// ============================================================================
+
+// Композит вуали поверх фона+солнца хоста. Диагностику отдаёт всегда —
+// вызывающий сам решает, рисовать её или финальный цвет.
+vec3 DS_veil_composite(vec3 bg_sun, vec3 dir,
+                       out float veil_alpha, out float veil_density, out float veil_tau) {
+    veil_alpha = 0.0; veil_density = 0.0; veil_tau = 0.0;
+    if (!hc_enabled) return bg_sun;
+
+    DS_VeilCtx c = DS_build_ctx();
+    vec3 origin = hc_use_world_anchor ? POSITION : vec3(0.0);
+    float t_near, t_far;
+    if (!DS_layer_interval(dir,
+                           hc_layer_bottom - origin.y,
+                           c.top           - origin.y,
+                           t_near, t_far)) {
+        return bg_sun;
+    }
+
+    // Точка сэмпла: середина пути, джиттер (если включён) — против бандинга.
+    // Жёсткий потолок DS_hc_max_sample_dist удерживает координаты 3D-текстуры
+    // в разумных пределах у горизонта (curtain всё равно гасит такие лучи).
+    float t_mid = 0.5 * (t_near + t_far);
+    if (DS_hc_jitter > 0.0) {
+        float r = fract(sin(dot(dir, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+        float u = clamp(0.5 + (r - 0.5) * DS_hc_jitter, 0.0, 1.0);
+        t_mid = mix(t_near, t_far, u);
+    }
+    vec3 p = origin + dir * min(t_mid, DS_hc_max_sample_dist);
+
+    float d    = DS_veil_density(p, c);
+    float path = t_far - t_near;
+    float tau  = d * c.tau_per_km * (path * 0.001);                     // м -> км
+    float curtain = 1.0 - DS_sstep(hc_curtain_start, hc_curtain_end, path);
+    float alpha = clamp((1.0 - exp(-tau)) * curtain * DS_hc_alpha_scale, 0.0, 1.0);
+
+    veil_alpha   = alpha;
+    veil_density = d;
+    veil_tau     = tau;
+
+    vec3 ldir = cloud_light_direction / max(length(cloud_light_direction), 1e-5);
+    vec3 veil_rgb = hc_use_lighting
+        ? DS_veil_lit_color(dir, ldir, p, c)
+        : hc_color;
+
+    // Премноженный композит: вуаль затеняет и фон, и солнце.
+    return bg_sun * (1.0 - alpha) + veil_rgb * alpha;
+}
+
+// Диагностический цвет. 1-exp(-tau) — лог-шкала, читаемая в [0, ~5] без
+// выжигания горизонта, в отличие от clamp(tau, 0, 1).
+vec3 DS_veil_debug_color(float dbg, float a, float d, float tau) {
+    if (dbg < 1.5) return vec3(d);
+    if (dbg < 2.5) return vec3(a);
+    return vec3(1.0 - exp(-tau));
+}

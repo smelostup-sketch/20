@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="SkyPreset" format=3 uid="uid://bxd0al0f2d61a"]
-
-[ext_resource type="Texture2D" uid="uid://bhjibov0uh121" path="res://Environment/SkyPreset/preset_9.png" id="1_6skao"]
-[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://Environment/SkyPreset.gd" id="1_41uf7"]
-
-[resource]
-script = ExtResource("1_41uf7")
-preview = ExtResource("1_6skao")
-metadata/_custom_type_script = "uid://c6o4hvxauaari"
