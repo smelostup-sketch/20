@@ -1,0 +1,419 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index c8cf7dd..08a4c6b 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -204,24 +204,34 @@ const GROUND := {
+ #   p1..p5 — ПОЛОЖЕНИЯ стопов градиента (соотношения лестницы, угловые доли 0..1).
+ # Ночные значения сняты с рефов N2/N4/N5, дневные — симулятором под эталон дня.
+ const SHAPE := {
+-	"K0": {"glow_int": 0.10, "wedge_int": 0.80, "low_dim": 0.30, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.050, "p2": 0.230, "p3": 0.420, "p4": 0.600, "p5": 0.750},
+-	"K1": {"glow_int": 0.20, "wedge_int": 1.20, "low_dim": 0.25, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.020, "p2": 0.120, "p3": 0.240, "p4": 0.420, "p5": 0.600},
+-	"K2": {"glow_int": 0.25, "wedge_int": 1.30, "low_dim": 0.22, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.015, "p2": 0.140, "p3": 0.280, "p4": 0.440, "p5": 0.600},
+-	"K3": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+-	"K4": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+-	"K5": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+-	"K6": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
++	"K0": {"glow_int": 0.10, "wedge_int": 0.80, "low_dim": 0.30, "below_int": 0.55,
++		"p1": 0.050, "p2": 0.230, "p3": 0.420, "p4": 0.600, "p5": 0.750, "p6": 0.550,
++		"zen_lift": 4.0, "band_w": 0.95, "band_lo": 0.19, "band_hi": 0.32, "band2_w": 0.98, "band2_lo": 0.30, "band2_hi": 0.48, "arc_w": 1.0},
++	"K1": {"glow_int": 0.20, "wedge_int": 1.20, "low_dim": 0.25, "below_int": 0.55,
++		"p1": 0.020, "p2": 0.120, "p3": 0.240, "p4": 0.420, "p5": 0.600, "p6": 0.520,
++		"zen_lift": 6.0, "band_w": 1.00, "band_lo": 0.10, "band_hi": 0.24, "band2_w": 0.95, "band2_lo": 0.22, "band2_hi": 0.40, "arc_w": 1.0},
++	"K2": {"glow_int": 0.25, "wedge_int": 1.30, "low_dim": 0.22, "below_int": 0.55,
++		"p1": 0.015, "p2": 0.140, "p3": 0.280, "p4": 0.440, "p5": 0.600, "p6": 0.500,
++		"zen_lift": 5.0, "band_w": 1.00, "band_lo": 0.10, "band_hi": 0.30, "band2_w": 0.95, "band2_lo": 0.26, "band2_hi": 0.46, "arc_w": 1.0},
++	"K3": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55,
++		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520, "p6": 0.750,
++		"zen_lift": 2.0, "band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "arc_w": 0.0},
++	"K4": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55,
++		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520, "p6": 0.750,
++		"zen_lift": 2.0, "band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "arc_w": 0.0},
++	"K5": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55,
++		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520, "p6": 0.750,
++		"zen_lift": 2.0, "band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "arc_w": 0.0},
++	"K6": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55,
++		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520, "p6": 0.750,
++		"zen_lift": 2.0, "band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "arc_w": 0.0},
+ }
+-# порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
+-const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
+-	"p1", "p2", "p3", "p4", "p5"]
++# порядок записи SHAPE в шейдер (uniform = "sk_" + ключ). Ключи стека цвета вуали
++# (zen_lift/band*/arc_w) живут ЗДЕСЬ только потому, что veil_palette r6 читает их;
++# купол их не использует.
++const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int",
++	"p1", "p2", "p3", "p4", "p5", "p6",
++	"zen_lift", "band_w", "band_lo", "band_hi", "band2_w", "band2_lo", "band2_hi", "arc_w"]
+ 
+ const PANEL_W := 352.0
+ 
+@@ -231,13 +241,13 @@ const PANEL_W := 352.0
+ # сам по себе ни на что; вуаль в зените видна за счёт базовой плотности слоя).
+ # master ночей поднят: при честной толщине прежние 0.05-0.32 давали невидимую вуаль.
+ const VEILP := {
+-	"K0": {"master": 0.35, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0.02, 0.05, 0.12, 1), "moon": 0.5, "blob": Color(0.004, 0.008, 0.030, 1)},
+-	"K1": {"master": 0.45, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.06, 0.04, 0.12, 1), "moon": 0.35, "blob": Color(0.010, 0.008, 0.045, 1)},
+-	"K2": {"master": 0.50, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.10, 0.06, 0.16, 1), "moon": 0.2, "blob": Color(0.030, 0.020, 0.090, 1)},
+-	"K3": {"master": 0.55, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "blob": Color(0.120, 0.050, 0.060, 1)},
+-	"K4": {"master": 0.6, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.160, 0.050, 0.080, 1)},
+-	"K5": {"master": 0.5, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.200, 0.120, 0.250, 1)},
+-	"K6": {"master": 0.4, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "blob": Color(0.250, 0.300, 0.450, 1)},
++	"K0": {"master": 0.05, "curve": 4.0, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0, 0, 0, 1), "moon": 0.5, "floor": 0.30, "refract": 0.25},
++	"K1": {"master": 0.18, "curve": 3.0, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.039, 0.031, 0.078, 1), "moon": 0.35, "floor": 0.35, "refract": 0.35},
++	"K2": {"master": 0.32, "curve": 2.5, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.102, 0.063, 0.141, 1), "moon": 0.2, "floor": 0.45, "refract": 0.40},
++	"K3": {"master": 0.55, "curve": 2.0, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "floor": 0.22, "refract": 0.0},
++	"K4": {"master": 0.6, "curve": 2.0, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.25, "refract": 0.0},
++	"K5": {"master": 0.5, "curve": 2.2, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.22, "refract": 0.0},
++	"K6": {"master": 0.4, "curve": 2.5, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "floor": 0.18, "refract": 0.0},
+ }
+ 
+ # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
+@@ -316,6 +326,12 @@ const VEIL_ROWS := [
+ 	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
+ 	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+ 	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
++	{"u": "veil_curve", "n": "Высотная маска вуали", "a": 0.5, "b": 6.0, "s": 0.05, "d": 2.0,
++	 "h": "Высотная маска r6: 1 у горизонта, 0 в зените (восстановлена дословно)"},
++	{"u": "veil_zen_floor", "n": "Пол вуали у зенита", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
++	 "h": "r6: доля вуали над головой (укрывает звёзды/луну у зенита); восстановлено дословно"},
++	{"u": "veil_refract", "n": "Преломление в вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
++	 "h": "r6: отклонение направления небесных тел градиентом плотности плиты; восстановлено дословно"},
+ 	{"u": "sk_arc_stretch", "n": "Эллипс: растяжение света вдоль горизонта", "a": 1.0, "b": 4.0, "s": 0.05, "d": 2.4,
+ 	 "h": "ГЛОБАЛЬНАЯ форма (вердикт 27.10.26 п.2): во сколько раз свет расходится вдоль горизонта дальше, чем по высоте. 1.0 = круг, 2.4 = эллипс с горизонтальной большой осью (ночные рефы N2/N4/N5, вердикт r9: +20%). Одна константа на все состояния — не параметр пресета"},
+ ]
+@@ -823,7 +839,9 @@ func _apply_t(t: float) -> void:
+ 		_sky_mat.set_shader_parameter("veil_sun_exp", lerpf(float(v0["sun_exp"]), float(v1["sun_exp"]), f))
+ 		_sky_mat.set_shader_parameter("veil_lift", lerpf(float(v0["lift"]), float(v1["lift"]), f))
+ 		_sky_mat.set_shader_parameter("veil_warm", (v0["warm"] as Color).lerp(v1["warm"] as Color, f))
+-		_sky_mat.set_shader_parameter("veil_blob", (v0["blob"] as Color).lerp(v1["blob"] as Color, f))
++		_sky_mat.set_shader_parameter("veil_curve", lerpf(float(v0["curve"]), float(v1["curve"]), f))
++		_sky_mat.set_shader_parameter("veil_zen_floor", lerpf(float(v0["floor"]), float(v1["floor"]), f))
++		_sky_mat.set_shader_parameter("veil_refract", lerpf(float(v0["refract"]), float(v1["refract"]), f))
+ 		# §10.6: солнце/луна/звёзды — из той же лестницы (§8.4)
+ 		var s0: Dictionary = SUNMOON[SEQ[i0]]
+ 		var s1: Dictionary = SUNMOON[SEQ[i1]]
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+index b9c5cd1..60a2817 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+@@ -206,10 +206,10 @@ uniform float sk_p2 = 0.075;	// положение стопа sk_horizon (u)
+ uniform float sk_p3 = 0.155;	// положение стопа sk_band_col (u)
+ uniform float sk_p4 = 0.300;	// положение стопа sk_band2_col (u)
+ uniform float sk_p5 = 0.520;	// положение стопа sk_mid (u)
++uniform float sk_p6 = 0.750;	// начало терминала антисоляра (u); ширина окна 0.22 — константа формы
+ // Затемнение кверху (общий физический член, НЕ «особый случай зенита»): чем выше
+ // смотрим, тем больше доля sk_zenith. Вес — данные ключа; у солнца (u < p1) не
+ // применяется, иначе ядро зари гасло бы. Окно 0.30..0.95 по dir.y — константа формы.
+-uniform float sk_zen_w : hint_range(0.0, 1.0) = 0.55;
+ // ЭЛЛИПС (вердикт 27.10.2026 п.2, вариант b): ГЛОБАЛЬНАЯ константа формы, одна на
+ // всю систему, НЕ параметр пресета. Горизонтальная составляющая углового смещения
+ // делится на S → свет расходится вдоль горизонта в S раз дальше, чем по высоте →
+@@ -291,11 +291,25 @@ uniform float veil_lift : hint_range(0.0, 0.5) = 0.22;	// высветление
+ // УДАЛЕНЫ: veil_zen_floor («зенитный пол» — отдельное влияние зенита) и
+ // veil_refract («преломление» — запечённый спецэффект со своей веткой).
+ uniform vec3 veil_warm : source_color = vec3(0.165, 0.078, 0.031);	// утепление (#2a1408, K4)
+-// ТОН ОБРАЗОВАНИЙ вуали (r9, вердикт п.1 «вуаль в зените не видна»): цвет самих
+-// облачных бугров (узор плотности d): ночи — тёмные силуэтные пятна поверх звёзд
+-// (рефы N2/N4/N5), дни — цветные облачные массы (рефы O). Данные ключа. Без этого
+-// вуаль в зените невидима: её цвет совпадал с цветом неба (тёмное на тёмном).
+-uniform vec3 veil_blob : source_color = vec3(0.02, 0.03, 0.08);
++// === ВУАЛЬ: COLOR-STACK r6, ВОССТАНОВЛЕН ДОСЛОВНО (вердикт 27.10.26 р10 п.3:
++// «вуаль до твоих правок работала отлично, пока не трогай»). Эти uniform'ы читает
++// ТОЛЬКО veil_palette/veil_rad_ramp ниже; купол их не использует.
++uniform float sk_zen_lift : hint_range(1.0, 6.0) = 2.0;
++uniform float sk_band_w : hint_range(0.0, 1.0) = 0.0;
++uniform float sk_band_lo = 0.05;
++uniform float sk_band_hi = 0.30;
++uniform float sk_band2_w : hint_range(0.0, 1.0) = 0.0;
++uniform float sk_band2_lo = 0.22;
++uniform float sk_band2_hi = 0.55;
++// SUNARC (r6): вес радиальной рампы в ЦВЕТЕ ВУАЛИ (ночи 1.0, дни 0.0 — данные r6).
++uniform float sk_arc_w : hint_range(0.0, 1.0) = 0.0;
++uniform float hc_curtain_start = 4000.0;	// длина пути в плите, с которой вуаль начинает таять, м
++uniform float hc_curtain_end = 14000.0;		// длина пути, за которой узор плиты гаснет, м
++// ВУАЛЬ МЕЖДУ НЕБОМ И НЕБЕСНЫМИ ТЕЛАМИ (r3 п.2, r6): зенитный пол высотной маски и
++// преломление — дословно r6 (часть восстановленной вуали, не новый параметр).
++uniform float veil_zen_floor : hint_range(0.0, 1.0) = 0.0;
++uniform float veil_refract : hint_range(0.0, 1.0) = 0.0;
++uniform float veil_curve : hint_range(0.5, 6.0) = 2.0;	// высотная маска: 1 у горизонта, 0 в зените
+ uniform float hc_debug = 0.0;				// 0 выкл / 1 плотность / 2 альфа / 3 оптическая толщина
+ 
+ // Явный smoothstep (переносимость между бэкендами, A5).
+@@ -320,6 +334,66 @@ bool layer_interval(vec3 dir, float bottom, float top, out float t_near, out flo
+ 	return t_far > t_near;			// защиты 2-3: взгляд вниз / вырожденный интервал
+ }
+ 
++vec3 veil_rad_ramp(vec3 dir, vec3 sd, out float u_o) {
++	// численно устойчивый угол (фидбек 27.10.26 р6): atan2(|cross|, dot) ровнее acos
++	// у u=0 и u=1; выбор формы подтверждён тестом угла в sim (расхождение < 1e-9).
++	float th = atan(length(cross(dir, sd)), dot(dir, sd));
++	// ЭЛЛИПС (р6 п.2): смещение раскладывается на вертикальную (в плоскости солнце-зенит)
++	// и горизонтальную (вдоль горизонта) составляющие; горизонтальная ужимается в S раз
++	// → изолинии = эллипсы с горизонтальной большой осью. У антисоляра (th→π) растяжение
++	// плавно снимается (wq→0): u=1 точно на антисоляре, без шума q при |w|→0.
++	float u = th / 3.141592653589793;
++	// у надира/зенита солнца горизонтальная ось эллипса вырождена (все азимуты равны):
++	// растяжение плавно снимается при |sd.y| -> 1, иначе кольцо горизонта непостоянно
++	// (тест T3: надир -> равномерное кольцо)
++	float S = 1.0 + (max(sk_arc_stretch, 1.0) - 1.0)
++			* (1.0 - sstep(0.85, 0.99, abs(sd.y)));
++	if (S > 1.001) {
++		vec3 up0 = abs(sd.y) > 0.99 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
++		vec3 upr = normalize(up0 - sd * dot(up0, sd));
++		vec3 rgt = cross(sd, upr);
++		vec3 w = dir - sd * dot(dir, sd);
++		float q = abs(dot(w, rgt)) / max(length(w), 1e-6);
++		float wq = q * (1.0 - sstep(0.80, 1.0, u));
++		u = th * (1.0 - (1.0 - 1.0 / S) * wq) / 3.141592653589793;
++	}
++	u_o = u;
++	vec3 zen_mid = sk_zenith * sk_zen_lift;
++	float sh = smoothstep(-0.03, 0.85, sd.y);
++	vec3 anti_c = mix(sk_anti_col, zen_mid, 0.45 * sh);
++	vec3 c = sk_horizon;
++	float e1 = max(0.4 * (sk_band_hi - sk_band_lo), 0.02);
++	c = mix(c, sk_band_col, sk_band_w * sstep(sk_band_lo, sk_band_lo + e1, u));
++	float e2 = max(0.4 * (sk_band2_hi - sk_band2_lo), 0.02);
++	c = mix(c, sk_band2_col, sk_band2_w * sstep(sk_band2_lo, sk_band2_lo + e2, u));
++	c = mix(c, zen_mid, smoothstep(sk_band2_hi, sk_band2_hi + 0.18, u));
++	c = mix(c, anti_c, smoothstep(0.75, 0.97, u));
++	return c;
++}
++
++vec3 veil_palette(vec3 dir) {
++	float h = clamp(dir.y, -1.0, 1.0);
++	vec3 c = mix(sk_horizon, sk_mid, smoothstep(0.02, 0.35, h));
++	c = mix(c, sk_zenith, smoothstep(0.30, 0.80, h));
++	// ФИКС Б (баг «светлое пятно в антисоляре»): антисолярный член той же формы, что в
++	// куполе: в самой тёмной точке купола вуаль берёт тёмный цвет, а не средний пояс.
++	// SUNARC: вуаль берёт ту же радиальную рампу (порядок: рампа P → дуга → антисоляр
++	// → glow → below), иначе вуаль «выпрямила» бы дуги своим тоном
++	if (sk_arc_w > 0.0) {
++		float u_p = 0.0;
++		vec3 rad_p = veil_rad_ramp(dir, normalize(sk_sun_dir), u_p);
++		c = mix(c, rad_p, sk_arc_w);
++	}
++	vec3 sd_p = normalize(sk_sun_dir);
++	float tp = clamp(0.5 + 0.5 * dot(dir, sd_p), 0.0, 1.0);
++	float w_ant = pow(clamp(1.0 - tp * 2.0, 0.0, 1.0), 1.6) * (1.0 - smoothstep(0.0, 0.5, abs(h)));
++	c = mix(c, sk_anti_col, w_ant);
++	float sp = clamp(dot(dir, sd_p), 0.0, 1.0);
++	c = mix(c, sk_glow_col, clamp(pow(sp, sk_glow_exp) * sk_glow_int, 0.0, 1.0));
++	c = mix(c, sk_below_col, smoothstep(0.0, -0.18, h) * sk_below_int);
++	return c;
++}
++
+ // === ЕДИНАЯ ЦВЕТОВАЯ МОДЕЛЬ КУПОЛА (r7, вердикт 27.10.2026) ===
+ // ОДНА функция sky_palette(dir) на все 7 ключей. Из неё читают и купол, и вуаль
+ // (ТЗ §3.1 «единый источник P(dir)», §13) — рассинхрон «вуаль другого цвета»
+@@ -357,15 +431,7 @@ vec3 ramp_u(vec3 dir, vec3 sd) {
+ 	c = mix(c, sk_band_col,  smoothstep(sk_p2, max(sk_p3, sk_p2 + 0.005), u));
+ 	c = mix(c, sk_band2_col, smoothstep(sk_p3, max(sk_p4, sk_p3 + 0.005), u));
+ 	c = mix(c, sk_mid,       smoothstep(sk_p4, max(sk_p5, sk_p4 + 0.005), u));
+-	c = mix(c, sk_anti_col,  smoothstep(0.75, 0.97, u));	// терминал рампы — всегда антисоляр
+-	// Затемнение кверху: общий член (чем выше смотрим, тем больше доля sk_zenith).
+-	// У ядра зари (u < p1) не применяется — иначе гасит солнце.
+-	// защита ТОЛЬКО ядра зари (u < p2): иначе затемнение гасило бы солнце;
+-	// r9-фикс: в r8 гейт был инвертирован (1 − sstep) и затемнение действовало
+-	// только внутри ядра — верх купола ночей не темнел (вердикт п.2 «соотношения»).
+-	float zw = sk_zen_w * smoothstep(0.30, 0.95, clamp(dir.y, 0.0, 1.0))
+-			* smoothstep(sk_p1, max(sk_p2, sk_p1 + 0.005), u);
+-	c = mix(c, sk_zenith, clamp(zw, 0.0, 1.0));
++	c = mix(c, sk_anti_col,  smoothstep(sk_p6, min(sk_p6 + 0.22, 0.97), u));	// терминал — антисоляр (динамическая точка)
+ 	return c;
+ }
+ 
+@@ -382,7 +448,11 @@ vec3 sky_palette(vec3 dir) {
+ 	vec2 dH = vec2(dir.x, dir.z);
+ 	vec2 sH = vec2(sd.x, sd.z);
+ 	float azH = dot(dH, sH) / max(length(dH) * length(sH), 1e-6);
+-	float azf = pow(0.5 + 0.5 * azH, max(sk_wedge_az, 0.0));
++	// охрана области определения азимута: у зенита/надира горизонтальная проекция
++	// вырождена (0/0), азимут не определён — член азимута там гладко гаснет.
++	// Это математика области определения, НЕ параметр, привязанный к зениту.
++	float wlen = length(dH) * length(sH);
++	float azf = pow(0.5 + 0.5 * azH, max(sk_wedge_az, 0.0)) * sstep(0.0, 0.02, wlen);
+ 	// r9: световая полоса горизонта — ТОЛЬКО над горизонтом: ниже горизонта земля
+ 	// живёт тенью состояния (sk_below_col), а клин красил низ в цвет зари
+ 	// (серо-лиловое «молоко» под горизонтом на ночах, рефы так не выглядят).
+@@ -395,10 +465,9 @@ vec3 sky_palette(vec3 dir) {
+ 	base = mix(base, sk_glow_col, clamp(pow(sp, sk_glow_exp) * sk_glow_int, 0.0, 1.0));
+ 	// ниже горизонта — в тень состояния
+ 	float h = clamp(dir.y, -1.0, 1.0);
+-	// r9: тень ниже горизонта вступает быстро (окно −3.4°): ниже горизонта луч у
+-	// азимута солнца имеет МАЛОЕ u и читает яркое ядро рампы напрямую — при широком
+-	// окне и below_int<1 HDR-остаток («молоко») красил низ купола (вердикт п.2).
+-	base = mix(base, sk_below_col, smoothstep(0.0, -0.06, h) * sk_below_int);
++	// ниже горизонта — в тень состояния: окно −0.18 и ниже_int 0.55 — ДОСЛОВНО как
++	// было до r7 (вердикт р10 п.2: «верни видимое небо под горизонтом как было»).
++	base = mix(base, sk_below_col, smoothstep(0.0, -0.18, h) * sk_below_int);
+ 	// чем ниже солнце, тем менее освещён купол (скаляр, hue не меняет)
+ 	float low = 1.0 - smoothstep(0.0, 20.0, sd.y);
+ 	base *= 1.0 - sk_low_dim * low;
+@@ -645,17 +714,12 @@ float hc_alpha(vec3 dir, out float dens_o, out float tau_o) {
+ 		return 0.0;
+ 	}
+ 	float d = hc_density(p);
+-	// r7 (вердикт 27.10.2026 п.1): ПОЛ ГУСТОТЫ veil_base — слой существует и там, где
+-	// узора нет, поэтому вуаль видна и straight up (ТЗ §3.2 «1 у горизонта» выполняется
+-	// самой геометрией: путь в плите растёт к горизонту). curtain УБРАН: он гасил вуаль
+-	// у горизонта (наследие реймарча кучевых «чистый горизонт»), что прямо противоречит
+-	// ТЗ §3.2 («у горизонта veil_a → 1»). Точность у горизонта обеспечена HC_MAX_DIST.
+-	float d_eff = mix(veil_base, 1.0, d);
+-	float tau = d_eff * max(hc_tau_per_km, 0.0) * (path * 0.001);
++	float tau = d * max(hc_tau_per_km, 0.0) * (path * 0.001);
++	float curtain = 1.0 - sstep(hc_curtain_start, hc_curtain_end, path);
+ 	dens_o = d;
+ 	tau_o = tau;
+-	return clamp(1.0 - exp(-tau), 0.0, 1.0);
+-}
++	return clamp((1.0 - exp(-tau)) * curtain, 0.0, 1.0);
++	}
+ 
+ 
+ void sky() {
+@@ -676,9 +740,23 @@ void sky() {
+ 		// ФИКС (feedback 27.10.26 «вместо луны соляр на антисоляре»): небесные тела
+ 		// читают НАСТОЯЩЕЕ солнце (sk_sun_dir), а не cloud_light_direction — ночью
+ 		// игровой ключ светит С ЛУНЫ, и диск/ореол солнца вставали на место луны.
+-		// r7: ветка «преломления» (veil_refract) удалена — запечённый спецэффект.
+-		// Небесные тела гасятся честной альфой вуали (1 − veil_a), ТЗ §11 тест 4.
+ 		vec3 cdir = dir;
++		if (veil_refract > 0.0 && hc_enabled && hc_d > 0.001) {
++			vec3 p = vec3(0.0);
++			float pth = 0.0;
++			if (slab_interval(dir, p, pth)) {
++				float e = 250.0;	// шаг конечных разностей по плоскости плиты, м
++				float d0 = hc_density(p);
++				vec3 g = vec3(hc_density(p + vec3(e, 0.0, 0.0)) - d0, 0.0,
++						hc_density(p + vec3(0.0, 0.0, e)) - d0);
++				float gl = length(g);
++				if (gl > 1e-5) {
++					vec3 g0 = g / gl;
++					vec3 gn = normalize(g0 - dir * dot(g0, dir));
++					cdir = normalize(dir + gn * (veil_refract * hc_d * veil_master * 0.06));
++				}
++			}
++		}
+ 		vec3 sd_sun = normalize(sk_sun_dir);
+ 		vec3 md = normalize(sk_moon_dir);	// луна независима от солнца (27.10.26 р.2)
+ 		sunbg = sun_celestial(cdir, sd_sun) + moon_celestial(cdir);
+@@ -688,31 +766,23 @@ void sky() {
+ 		sunbg += vec3(0.85, 0.90, 1.0) * (star_field(cdir) * star_intensity * horfade * mdamp);
+ 	}
+ 
+-	// ЦВЕТ: одна функция P(dir) на купол и на вуаль (r7; ТЗ §3.1, §13). Второй модели
+-	// цвета в шейдере больше нет — рассинхрон «вуаль другого цвета» невозможен.
++	// КУПОЛ = sky_palette(dir) (единая рампа r7-r9). ВУАЛЬ = восстановленный блок r6:
++	// её цвет берёт veil_palette(dir) (дословно r6), альфа = shape × высотная маска
++	// (с полом veil_zen_floor) × sun_mask × veil_master, shape = mix(veil_base, 1, hc_a).
++	vec3 bg = sky_palette(dir);
+ 	vec3 Pdir = sky_palette(dir);
+-	vec3 bg = Pdir;
+-	// ВУАЛЬ (r7, вердикт п.1 «в зените вуаль не видна — исправить»):
+-	//   veil_a = (1 − exp(−tau)) × sun_mask × veil_master,
+-	// tau = оптическая толщина слоя ПО ЛУЧУ (плотность × путь в км, hc_alpha).
+-	// Вверх путь = толщина плиты (вуаль видна), к горизонту путь в разы длиннее
+-	// (вуаль гуще). Маски по высоте и «зенитного пола» нет: густота получается из
+-	// геометрии слоя, а не из отдельного влияния зенита. sun_mask — раскалённая дымка
+-	// у зари (ТЗ §3.2). Цвет вуали = та же P(dir), высветленная/утеплённая (§3.2:
+-	// однотонная вуаль запрещена). При veil_master = 0 или hc_enabled = false → base = bg.
++	// высотная маска с зенитным полом: плита над головой НЕ прозрачна (veil_zen_floor),
++	// поэтому вуаль укрывает звёзды/луну и у зенита; floor=0 → прежняя формула (K3-K6)
++	float height_mask = mix(veil_zen_floor, 1.0,
++			1.0 - pow(clamp(dir.y, 0.0, 1.0), max(veil_curve, 0.001)));
+ 	float sp_v = clamp(dot(dir, normalize(sk_sun_dir)), 0.0, 1.0);
+ 	float sun_mask = 1.0 + veil_sun * pow(sp_v, veil_sun_exp);
+-	// r9 (вердикт п.3 «появилась линия горизонта»): ступенька возникала потому, что
+-	// выше горизонта у самой линии путь в слое огромен (альфа → 1), а ниже горизонта
+-	// луч слой не пересекает (альфа = 0). curtain, маскировавший стык, удалён в r7.
+-	// ТЕПЕРЬ: ниже горизонта вуаль продолжается значением предела сверху и плавно
+-	// тает к −8.6° (окна — константы формы, не данные ключа). Ступени нет.
+-	float h_v = clamp(dir.y, -1.0, 1.0);
+-	float below_ext = sstep(-0.15, 0.0, h_v) * (1.0 - sstep(0.0, 0.005, h_v));
+-	float pat = max(hc_a, below_ext);
+-	float veil_a = clamp(pat * sun_mask * veil_master, 0.0, 1.0);
+-	// цвет: дымка из P(dir) + тон самих образований (узор d), см. veil_blob
+-	vec3 veil_col = mix(Pdir * (1.0 + veil_lift) + veil_warm, veil_blob, hc_d);
++	// ФИКС А (баг «у солнца прозрачно»): узор плиты МОДУЛИРУЕТ плотность, но не гейтит:
++	// shape = mix(veil_base, 1, pattern); curtain плиты больше не обнуляет дымку у зари.
++	// Гейт идентичности сохранён: hc_enabled=false → shape=0 → вуали нет.
++	float shape = hc_enabled ? mix(veil_base, 1.0, hc_a) : 0.0;
++	float veil_a = clamp(shape * height_mask * sun_mask * veil_master, 0.0, 1.0);
++	vec3 veil_col = Pdir * (1.0 + veil_lift) + veil_warm;
+ 	// §5.3/§10.8: display-композит с bypass тонмаппера: купол+вуаль → filmic в display,
+ 	// небесные тела ПРИБАВЛЯЮТСЯ в display (hue палитры не десатурируется Filmic'ом),
+ 	// затем точный inv_filmic — движковый тонмапп возвращает сумму 1:1. Вуаль ближе к
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+index adf78d9..3d1faae 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+@@ -37,8 +37,8 @@ shader_parameter/veil_curve = 2.0
+ shader_parameter/veil_sun = 1.4
+ shader_parameter/veil_sun_exp = 4.0
+ shader_parameter/veil_lift = 0.22
++shader_parameter/veil_curve = 2.0
+ shader_parameter/veil_warm = Color(0.165, 0.078, 0.031, 1)
+-shader_parameter/veil_blob = Color(0.02, 0.03, 0.08, 1)
+ shader_parameter/hc_use_world_anchor = true
+ shader_parameter/hc_layer_bottom = 6000.0
+ shader_parameter/hc_layer_top = 7200.0
+@@ -70,6 +70,7 @@ shader_parameter/sk_p2 = 0.075
+ shader_parameter/sk_p3 = 0.155
+ shader_parameter/sk_p4 = 0.300
+ shader_parameter/sk_p5 = 0.520
++shader_parameter/sk_p6 = 0.750
+ shader_parameter/sk_zen_w = 0.55
+ shader_parameter/sk_arc_stretch = 2.4
+ shader_parameter/sk_below_col = Vector3(0.0647, 0.0115, 0.0198)
+diff --git a/Q7.32.PreOmega/changes.md b/Q7.32.PreOmega/changes.md
+index 7bd07a9..ca5c329 100644
+--- a/Q7.32.PreOmega/changes.md
++++ b/Q7.32.PreOmega/changes.md
+@@ -1712,3 +1712,39 @@ sk_arc_stretch 2.0 → 2.4 везде (дефолт шейдера, матери
+ strict_validate (дубли/имена/таблицы) — ПРОЙДЕНО; аудит мёртвых uniform'ов — нет;
+ CPU-превью лестницы K0..K6 сверено с рефами N2/N4/N5 и дневным эталоном
+ (scratch/out/r7_ladder_new.png, r7_day_old_vs_new.png).
++
++---
++
++## Q7.32_SkyLight_r10 «veilrestore_zenfree» (27.10.2026, раунд 7)
++
++### Правило заказчика (записано в процесс)
++Есть ДИНАМИЧЕСКИЙ антисоляр (ходит за солнцем) и СТАТИЧНЫЕ зенит / линия горизонта /
++надир, к которым не привязано НИЧЕГО: никаких отдельных параметров и членов,
++читающих dir.y как «зенит». Палитры пресетов проектируются по ключам независимо
++(пресеты — не таймлайн); блендер t оставлен как есть до отдельного вердикта.
++
++### П.1 зенит
++Удалён sk_zen_w (единственный член купола, привязанный к статичному зениту).
++Проверка метрики эллипса на складку: горизонтальная составляющая входит под корень
++квадратом → производная непрерывна, фальца через меридиан нет. Азимут клина получил
++охрану области определения (wlen→0 у зенита/надира: азимут там не определён — член
++гладко гаснет; это не параметр, а математика области определения). Тёмный верх ночей
++теперь = терминал рампы sk_p6 в u-координате (динамическая, от солнца).
++
++### П.2 под горизонтом
++Восстановлено дословно до r7: окно −0.18, below_int 0.55 у всех ключей. Граница
++исчезает: база непрерывна через h=0, тень входит широким окном, вуаль больше не
++даёт скачка цвета (blob/below_ext удалены вместе с восстановлением вуали).
++
++### П.3 вуаль
++Восстановлена дословно r6 (коммит aa9dbbb): альфа shape×height_mask(с полом)×
++sun_mask×master, hc_alpha с curtain (curtain маскирует плоские отсечки плиты
++HC_MAX_DIST/guards — они и давали «коробку с прямыми углами» в r7-r9), преломление
++veil_refract, цвет из восстановленного стека veil_palette/veil_rad_ramp.
++VEILP = таблица r6. Добавки r7-r9 убраны. Вуаль НЕ тронута относительно r6.
++
++### Проверено
++strict_validate — пройден; мёртвых uniform'ов нет; скобки 0; превью лестницы
++K0..K6 и дни old/new пересняты (scratch/out/r7_ladder_new.png, r7_day_old_vs_new.png).
++GPU-приёмка за заказчиком: смотреть (а) прямо вверх — нет секторов/веера,
++(б) по всем азимутам у горизонта — нет границы, (в) вуаль = связный слой как до r7.

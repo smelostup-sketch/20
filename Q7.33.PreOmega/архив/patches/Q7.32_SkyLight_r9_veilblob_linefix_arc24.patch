@@ -1,0 +1,396 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index 4f59698..c8cf7dd 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -204,12 +204,12 @@ const GROUND := {
+ #   p1..p5 — ПОЛОЖЕНИЯ стопов градиента (соотношения лестницы, угловые доли 0..1).
+ # Ночные значения сняты с рефов N2/N4/N5, дневные — симулятором под эталон дня.
+ const SHAPE := {
+-	"K0": {"glow_int": 0.10, "wedge_int": 0.55, "low_dim": 0.30, "below_int": 0.85, "zen_w": 0.90,
++	"K0": {"glow_int": 0.10, "wedge_int": 0.80, "low_dim": 0.30, "below_int": 1.00, "zen_w": 0.90,
+ 		"p1": 0.050, "p2": 0.230, "p3": 0.420, "p4": 0.600, "p5": 0.750},
+-	"K1": {"glow_int": 0.20, "wedge_int": 0.75, "low_dim": 0.25, "below_int": 0.85, "zen_w": 0.90,
+-		"p1": 0.010, "p2": 0.160, "p3": 0.240, "p4": 0.350, "p5": 0.470},
+-	"K2": {"glow_int": 0.25, "wedge_int": 0.80, "low_dim": 0.22, "below_int": 0.85, "zen_w": 0.90,
+-		"p1": 0.008, "p2": 0.100, "p3": 0.200, "p4": 0.330, "p5": 0.470},
++	"K1": {"glow_int": 0.20, "wedge_int": 1.20, "low_dim": 0.25, "below_int": 1.00, "zen_w": 0.90,
++		"p1": 0.020, "p2": 0.120, "p3": 0.240, "p4": 0.420, "p5": 0.600},
++	"K2": {"glow_int": 0.25, "wedge_int": 1.30, "low_dim": 0.22, "below_int": 1.00, "zen_w": 0.90,
++		"p1": 0.015, "p2": 0.140, "p3": 0.280, "p4": 0.440, "p5": 0.600},
+ 	"K3": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+ 		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+ 	"K4": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+@@ -231,13 +231,13 @@ const PANEL_W := 352.0
+ # сам по себе ни на что; вуаль в зените видна за счёт базовой плотности слоя).
+ # master ночей поднят: при честной толщине прежние 0.05-0.32 давали невидимую вуаль.
+ const VEILP := {
+-	"K0": {"master": 0.35, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0.02, 0.05, 0.12, 1), "moon": 0.5},
+-	"K1": {"master": 0.45, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.06, 0.04, 0.12, 1), "moon": 0.35},
+-	"K2": {"master": 0.50, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.10, 0.06, 0.16, 1), "moon": 0.2},
+-	"K3": {"master": 0.55, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05},
+-	"K4": {"master": 0.6, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0},
+-	"K5": {"master": 0.5, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0},
+-	"K6": {"master": 0.4, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0},
++	"K0": {"master": 0.35, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0.02, 0.05, 0.12, 1), "moon": 0.5, "blob": Color(0.004, 0.008, 0.030, 1)},
++	"K1": {"master": 0.45, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.06, 0.04, 0.12, 1), "moon": 0.35, "blob": Color(0.010, 0.008, 0.045, 1)},
++	"K2": {"master": 0.50, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.10, 0.06, 0.16, 1), "moon": 0.2, "blob": Color(0.030, 0.020, 0.090, 1)},
++	"K3": {"master": 0.55, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "blob": Color(0.120, 0.050, 0.060, 1)},
++	"K4": {"master": 0.6, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.160, 0.050, 0.080, 1)},
++	"K5": {"master": 0.5, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.200, 0.120, 0.250, 1)},
++	"K6": {"master": 0.4, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "blob": Color(0.250, 0.300, 0.450, 1)},
+ }
+ 
+ # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
+@@ -316,8 +316,8 @@ const VEIL_ROWS := [
+ 	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
+ 	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+ 	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
+-	{"u": "sk_arc_stretch", "n": "Эллипс: растяжение света вдоль горизонта", "a": 1.0, "b": 4.0, "s": 0.05, "d": 2.0,
+-	 "h": "ГЛОБАЛЬНАЯ форма (вердикт 27.10.26 п.2): во сколько раз свет расходится вдоль горизонта дальше, чем по высоте. 1.0 = круг, 2.0 = эллипс с горизонтальной большой осью (ночные рефы N2/N4/N5). Одна константа на все состояния — не параметр пресета"},
++	{"u": "sk_arc_stretch", "n": "Эллипс: растяжение света вдоль горизонта", "a": 1.0, "b": 4.0, "s": 0.05, "d": 2.4,
++	 "h": "ГЛОБАЛЬНАЯ форма (вердикт 27.10.26 п.2): во сколько раз свет расходится вдоль горизонта дальше, чем по высоте. 1.0 = круг, 2.4 = эллипс с горизонтальной большой осью (ночные рефы N2/N4/N5, вердикт r9: +20%). Одна константа на все состояния — не параметр пресета"},
+ ]
+ const HC_DEBUG_MODES := ["Итог", "Плотность", "Покрытие (альфа)", "Оптическая толщина"]
+ const OFFSET_ROWS := [
+@@ -823,6 +823,7 @@ func _apply_t(t: float) -> void:
+ 		_sky_mat.set_shader_parameter("veil_sun_exp", lerpf(float(v0["sun_exp"]), float(v1["sun_exp"]), f))
+ 		_sky_mat.set_shader_parameter("veil_lift", lerpf(float(v0["lift"]), float(v1["lift"]), f))
+ 		_sky_mat.set_shader_parameter("veil_warm", (v0["warm"] as Color).lerp(v1["warm"] as Color, f))
++		_sky_mat.set_shader_parameter("veil_blob", (v0["blob"] as Color).lerp(v1["blob"] as Color, f))
+ 		# §10.6: солнце/луна/звёзды — из той же лестницы (§8.4)
+ 		var s0: Dictionary = SUNMOON[SEQ[i0]]
+ 		var s1: Dictionary = SUNMOON[SEQ[i1]]
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+index 4346312..b9c5cd1 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+@@ -214,7 +214,7 @@ uniform float sk_zen_w : hint_range(0.0, 1.0) = 0.55;
+ // всю систему, НЕ параметр пресета. Горизонтальная составляющая углового смещения
+ // делится на S → свет расходится вдоль горизонта в S раз дальше, чем по высоте →
+ // изолинии градиента = эллипсы с горизонтальной большой осью. 1.0 = круг.
+-uniform float sk_arc_stretch : hint_range(1.0, 4.0) = 1.0;
++uniform float sk_arc_stretch : hint_range(1.0, 4.0) = 2.4;	// r9: +20% к r8 (было 2.0)
+ uniform float sk_dither : hint_range(0.0, 1.0) = 1.0;
+ 
+ // === Освещение — прямой источник (солнце/луна). Конвенция имён продакшн-неба: ===
+@@ -291,6 +291,11 @@ uniform float veil_lift : hint_range(0.0, 0.5) = 0.22;	// высветление
+ // УДАЛЕНЫ: veil_zen_floor («зенитный пол» — отдельное влияние зенита) и
+ // veil_refract («преломление» — запечённый спецэффект со своей веткой).
+ uniform vec3 veil_warm : source_color = vec3(0.165, 0.078, 0.031);	// утепление (#2a1408, K4)
++// ТОН ОБРАЗОВАНИЙ вуали (r9, вердикт п.1 «вуаль в зените не видна»): цвет самих
++// облачных бугров (узор плотности d): ночи — тёмные силуэтные пятна поверх звёзд
++// (рефы N2/N4/N5), дни — цветные облачные массы (рефы O). Данные ключа. Без этого
++// вуаль в зените невидима: её цвет совпадал с цветом неба (тёмное на тёмном).
++uniform vec3 veil_blob : source_color = vec3(0.02, 0.03, 0.08);
+ uniform float hc_debug = 0.0;				// 0 выкл / 1 плотность / 2 альфа / 3 оптическая толщина
+ 
+ // Явный smoothstep (переносимость между бэкендами, A5).
+@@ -355,8 +360,11 @@ vec3 ramp_u(vec3 dir, vec3 sd) {
+ 	c = mix(c, sk_anti_col,  smoothstep(0.75, 0.97, u));	// терминал рампы — всегда антисоляр
+ 	// Затемнение кверху: общий член (чем выше смотрим, тем больше доля sk_zenith).
+ 	// У ядра зари (u < p1) не применяется — иначе гасит солнце.
++	// защита ТОЛЬКО ядра зари (u < p2): иначе затемнение гасило бы солнце;
++	// r9-фикс: в r8 гейт был инвертирован (1 − sstep) и затемнение действовало
++	// только внутри ядра — верх купола ночей не темнел (вердикт п.2 «соотношения»).
+ 	float zw = sk_zen_w * smoothstep(0.30, 0.95, clamp(dir.y, 0.0, 1.0))
+-			* (1.0 - smoothstep(sk_p1 * 0.5, sk_p1, u));
++			* smoothstep(sk_p1, max(sk_p2, sk_p1 + 0.005), u);
+ 	c = mix(c, sk_zenith, clamp(zw, 0.0, 1.0));
+ 	return c;
+ }
+@@ -375,14 +383,22 @@ vec3 sky_palette(vec3 dir) {
+ 	vec2 sH = vec2(sd.x, sd.z);
+ 	float azH = dot(dH, sH) / max(length(dH) * length(sH), 1e-6);
+ 	float azf = pow(0.5 + 0.5 * azH, max(sk_wedge_az, 0.0));
+-	float band = azf * exp(-abs(dir.y) * sk_wedge_k) * sk_wedge_int;
++	// r9: световая полоса горизонта — ТОЛЬКО над горизонтом: ниже горизонта земля
++	// живёт тенью состояния (sk_below_col), а клин красил низ в цвет зари
++	// (серо-лиловое «молоко» под горизонтом на ночах, рефы так не выглядят).
++	// Окно — константа формы, общая для всех ключей.
++	float band = azf * exp(-abs(dir.y) * sk_wedge_k) * sk_wedge_int
++			* sstep(-0.06, -0.01, dir.y);
+ 	base = mix(base, sk_glow_col, clamp(band, 0.0, 1.0));
+ 	// ореол вокруг источника (форма glow_exp — общая; яркость glow_int — данные)
+ 	float sp = clamp(dot(dir, sd), 0.0, 1.0);
+ 	base = mix(base, sk_glow_col, clamp(pow(sp, sk_glow_exp) * sk_glow_int, 0.0, 1.0));
+ 	// ниже горизонта — в тень состояния
+ 	float h = clamp(dir.y, -1.0, 1.0);
+-	base = mix(base, sk_below_col, smoothstep(0.0, -0.18, h) * sk_below_int);
++	// r9: тень ниже горизонта вступает быстро (окно −3.4°): ниже горизонта луч у
++	// азимута солнца имеет МАЛОЕ u и читает яркое ядро рампы напрямую — при широком
++	// окне и below_int<1 HDR-остаток («молоко») красил низ купола (вердикт п.2).
++	base = mix(base, sk_below_col, smoothstep(0.0, -0.06, h) * sk_below_int);
+ 	// чем ниже солнце, тем менее освещён купол (скаляр, hue не меняет)
+ 	float low = 1.0 - smoothstep(0.0, 20.0, sd.y);
+ 	base *= 1.0 - sk_low_dim * low;
+@@ -686,8 +702,17 @@ void sky() {
+ 	// однотонная вуаль запрещена). При veil_master = 0 или hc_enabled = false → base = bg.
+ 	float sp_v = clamp(dot(dir, normalize(sk_sun_dir)), 0.0, 1.0);
+ 	float sun_mask = 1.0 + veil_sun * pow(sp_v, veil_sun_exp);
+-	float veil_a = clamp(hc_a * sun_mask * veil_master, 0.0, 1.0);
+-	vec3 veil_col = Pdir * (1.0 + veil_lift) + veil_warm;
++	// r9 (вердикт п.3 «появилась линия горизонта»): ступенька возникала потому, что
++	// выше горизонта у самой линии путь в слое огромен (альфа → 1), а ниже горизонта
++	// луч слой не пересекает (альфа = 0). curtain, маскировавший стык, удалён в r7.
++	// ТЕПЕРЬ: ниже горизонта вуаль продолжается значением предела сверху и плавно
++	// тает к −8.6° (окна — константы формы, не данные ключа). Ступени нет.
++	float h_v = clamp(dir.y, -1.0, 1.0);
++	float below_ext = sstep(-0.15, 0.0, h_v) * (1.0 - sstep(0.0, 0.005, h_v));
++	float pat = max(hc_a, below_ext);
++	float veil_a = clamp(pat * sun_mask * veil_master, 0.0, 1.0);
++	// цвет: дымка из P(dir) + тон самих образований (узор d), см. veil_blob
++	vec3 veil_col = mix(Pdir * (1.0 + veil_lift) + veil_warm, veil_blob, hc_d);
+ 	// §5.3/§10.8: display-композит с bypass тонмаппера: купол+вуаль → filmic в display,
+ 	// небесные тела ПРИБАВЛЯЮТСЯ в display (hue палитры не десатурируется Filmic'ом),
+ 	// затем точный inv_filmic — движковый тонмапп возвращает сумму 1:1. Вуаль ближе к
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+index eefd968..adf78d9 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+@@ -38,6 +38,7 @@ shader_parameter/veil_sun = 1.4
+ shader_parameter/veil_sun_exp = 4.0
+ shader_parameter/veil_lift = 0.22
+ shader_parameter/veil_warm = Color(0.165, 0.078, 0.031, 1)
++shader_parameter/veil_blob = Color(0.02, 0.03, 0.08, 1)
+ shader_parameter/hc_use_world_anchor = true
+ shader_parameter/hc_layer_bottom = 6000.0
+ shader_parameter/hc_layer_top = 7200.0
+@@ -70,7 +71,7 @@ shader_parameter/sk_p3 = 0.155
+ shader_parameter/sk_p4 = 0.300
+ shader_parameter/sk_p5 = 0.520
+ shader_parameter/sk_zen_w = 0.55
+-shader_parameter/sk_arc_stretch = 2.0
++shader_parameter/sk_arc_stretch = 2.4
+ shader_parameter/sk_below_col = Vector3(0.0647, 0.0115, 0.0198)
+ shader_parameter/sk_below_int = 0.55
+ shader_parameter/sk_anti_col = Vector3(0.0202, 0.00718, 0.0152)
+diff --git a/Q7.32.PreOmega/Q7.32_SkyLight_r7_unipalette.patch b/Q7.32.PreOmega/Q7.32_SkyLight_r7_unipalette.patch
+index 1fb4640..2d37bb3 100644
+--- a/Q7.32.PreOmega/Q7.32_SkyLight_r7_unipalette.patch
++++ b/Q7.32.PreOmega/Q7.32_SkyLight_r7_unipalette.patch
+@@ -1,5 +1,5 @@
+ diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+-index 758e695..06c0466 100644
++index 758e695..4f59698 100644
+ --- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+ +++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+ @@ -133,6 +133,46 @@ const NIGHT_ADAPTED := {
+@@ -49,7 +49,7 @@ index 758e695..06c0466 100644
+  # Земля (SKY_TZ_LUT7 §8.5 + Приложение А, флаги разрешены заказчиком 25.10.26):
+  # KEY = DirectionalLight3D.color/energy, BOUNCE = нижний свет (узел BounceLight, be =
+  # его энергия). FILL = IBL-кубмапа неба (§7). Все из той же лестницы — рассинхрон
+-@@ -154,69 +194,54 @@ const GROUND := {
++@@ -154,69 +194,50 @@ const GROUND := {
+  	"K5": {"key": Color(1.0, 0.851, 0.627), "e": 2.0, "bounce": Color(0.878, 0.690, 0.502), "be": 0.4},
+  	"K6": {"key": Color(1.0, 0.941, 0.816), "e": 1.8, "bounce": Color(0.941, 0.863, 0.784), "be": 0.4},
+  }
+@@ -110,16 +110,12 @@ index 758e695..06c0466 100644
+ +	"K6": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+ +		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+  }
+-+# порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
+-+const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
+-+	"p1", "p2", "p3", "p4", "p5"]
+-+
+- const PANEL_W := 352.0
++-const PANEL_W := 352.0
+  # порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
+- const SHAPE_KEYS := ["wedge_int", "wedge_az", "wedge_k", "glow_int", "glow_exp", "zen_lift",
+- 	"low_dim", "anti_p_lo", "anti_p_hi", "below_int", "band_w", "band_lo", "band_hi",
+- 	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi", "arc_w", "arc_st"]
+- 
++-const SHAPE_KEYS := ["wedge_int", "wedge_az", "wedge_k", "glow_int", "glow_exp", "zen_lift",
++-	"low_dim", "anti_p_lo", "anti_p_hi", "below_int", "band_w", "band_lo", "band_hi",
++-	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi", "arc_w", "arc_st"]
++-
+ -# Mid-стоп рампы P(dir) по K-ключам (§8.1; K0-K2 — извлечение с N-рефов, K3-K6 —
+ -# первый проход §8.1; всё inv-Filmic как M1)
+ -const MID := {
+@@ -132,6 +128,11 @@ index 758e695..06c0466 100644
+ -	"K6": Vector3(0.413874, 0.343387, 0.867657),
+ -}
+ -# Вуаль по K-ключам (§8.2): master/curve/sun/sun_exp/lift + warm (display-hex → Color)
+++const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
+++	"p1", "p2", "p3", "p4", "p5"]
+++
+++const PANEL_W := 352.0
+++
+ +# Вуаль по K-ключам (§8.2, r7): master/sun/sun_exp/lift/warm + лунный шеен.
+ +# r7: густота вуали = оптическая толщина плиты по лучу (hc_alpha), поэтому
+ +# veil_curve/veil_zen_floor/veil_refract УДАЛЕНЫ (вердикт п.1: зенит не влияет
+@@ -158,7 +159,7 @@ index 758e695..06c0466 100644
+  }
+  
+  # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
+-@@ -295,28 +320,8 @@ const VEIL_ROWS := [
++@@ -295,28 +316,8 @@ const VEIL_ROWS := [
+  	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
+  	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+  	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
+@@ -189,7 +190,7 @@ index 758e695..06c0466 100644
+  ]
+  const HC_DEBUG_MODES := ["Итог", "Плотность", "Покрытие (альфа)", "Оптическая толщина"]
+  const OFFSET_ROWS := [
+-@@ -788,9 +793,11 @@ func _apply_t(t: float) -> void:
++@@ -788,9 +789,11 @@ func _apply_t(t: float) -> void:
+  	var f := clampf(_t - 1.0 - float(i0), 0.0, 1.0)
+  	var a: Dictionary = _states[SEQ[i0]]
+  	var b: Dictionary = _states[SEQ[i1]]
+@@ -204,7 +205,7 @@ index 758e695..06c0466 100644
+  	var lit: Vector3 = (a["lit"] as Vector3).lerp(b["lit"] as Vector3, f)
+  	var shd: Vector3 = (a["shadow"] as Vector3).lerp(b["shadow"] as Vector3, f)
+  	if _sky_mat != null:
+-@@ -799,33 +806,27 @@ func _apply_t(t: float) -> void:
++@@ -799,33 +802,27 @@ func _apply_t(t: float) -> void:
+  		# 27.10.26: ядро зари — отдельная роль (ночи: почти белое/розовое HDR-ядро
+  		# вместо горизонта; K3-K6: glow = horizon — побитово прежний вид)
+  		_sky_mat.set_shader_parameter("sk_glow_col", glo)
+@@ -711,14 +712,24 @@ index 6441f9c..eefd968 100644
+ -shader_parameter/sk_anti_p_lo = 0.6
+ -shader_parameter/sk_anti_p_hi = 3.0
+ diff --git a/Q7.32.PreOmega/RoadMap.md b/Q7.32.PreOmega/RoadMap.md
+-index ccac2e3..c7f040b 100644
++index ccac2e3..bad29c5 100644
+ --- a/Q7.32.PreOmega/RoadMap.md
+ +++ b/Q7.32.PreOmega/RoadMap.md
+-@@ -346,7 +346,36 @@ q_tools/adr_movement_unification.md и q_tools/cleanup_inventory.md).
++@@ -346,7 +346,46 @@ q_tools/adr_movement_unification.md и q_tools/cleanup_inventory.md).
+        затемнения lit (K0 e 0.319→0.0970, K1 0.172→0.0363, K2 0.342→0.0730; bounce
+        пропорционально); MID K0-K2 трансформирован (вуаль и аура луны согласованы).
+        Данные только палитр/формы; шейдер и K3-K6 не тронуты.
+ -- [ ] В ОЧЕРЕДИ (фидбек 27.10.26 р3, п.2): ВУАЛЬ ПРОТИВ ЗВЁЗД И ЛУНЫ (глубина). Сейчас
+++- [x] СРОЧНЫЙ ФИКС 27.10.26 (вердикт 0/10 на r7: Parser Error — дубль константы
+++      SHAPE_KEYS в VeilSkyPanel.gd): ВЕРСИЯ Q7.32_SkyLight_r8 «parsefix»: старое
+++      объявление SHAPE_KEYS (после PANEL_W) удалено — осталось одно, с ключами r7.
+++      Причина пропуска: проверки r7 ловили скобки/мёртвые uniform'ы, но не дубли
+++      идентификаторов. ДОБАВЛЕН стенд-валидатор strict_validate (top-level дубли
+++      const/var/func по всем .gd, дубли uniform, все имена set_shader_parameter
+++      против шейдера, состав SHAPE_KEYS↔SHAPE, состав таблиц PAL/VEILP/SUNMOON/
+++      GROUND/MOONPOS, скобки/кавычки) — прогнан по всему проекту: ПРОЙДЕНО.
+++      Поставка r8: файлы для ручной замены + инкрементный патч r7→r8 (одна удалённая
+++      строка-блок) + обновлённый полный патч r7 (исправленный).
+ +- [x] ФИДБЕК 27.10.26 РАУНД 5 (вердикт «переделать»: вуаль/зенит, эллипс, луч у
+ +      горизонта, костыли): ВЕРСИЯ Q7.32_SkyLight_r7 «unipalette»:
+ +      (1) ЭЛЛИПС (п.2): найдена ТОЧНАЯ причина «круг остался» — панель писала
+@@ -753,10 +764,10 @@ index ccac2e3..c7f040b 100644
+        их лишь альфой узора и не укрывает/не искажает (ночью альфа мала, у зенита высотная
+        маска = 0 → звёзды читались «ближе вуали»). Решение: высотную маску вуали привести
+ diff --git a/Q7.32.PreOmega/changes.md b/Q7.32.PreOmega/changes.md
+-index 4a4f1ec..db594b3 100644
++index 4a4f1ec..fa40618 100644
+ --- a/Q7.32.PreOmega/changes.md
+ +++ b/Q7.32.PreOmega/changes.md
+-@@ -1589,3 +1589,53 @@ sim_debug_ui подменяет Callable фейком и проверяет са
++@@ -1589,3 +1589,85 @@ sim_debug_ui подменяет Callable фейком и проверяет са
+  Q7.31_RengarPreOmega.zip (~50 МБ — больше договорных ~40 МБ, потому что теперь
+  внутри ВСЕ модели сцены; меньше — только резав ассеты) + patch.diff против
+  Q7.30 (из кода изменён один SkyDebugUI.gd + стенд) + sha256 в чате.
+@@ -810,6 +821,38 @@ index 4a4f1ec..db594b3 100644
+ +  штатный процесс (данные в PAL/SHAPE, код не меняется).
+ +- Ниже горизонта ночью стало темнее (below_int 0.85) — проверить с землёй.
+ +- Эксперимент comp_linear оставлен (вердикт по Linear vs Filmic всё ещё открыт).
+++
+++---
+++
+++## Q7.32_SkyLight_r8 «parsefix» (27.10.2026, срочно по вердикту 0/10 на r7)
+++
+++### Ошибка
+++`Parser Error: Constant "SHAPE_KEYS" has the same name as a previously declared constant.`
+++При замене блока SHAPE в r7 новое объявление `const SHAPE_KEYS` вставлено перед
+++`PANEL_W`, а прежнее (после `PANEL_W`, со старыми ключами) не удалено → два
+++объявления → GDScript не парсит файл вовсе. Вина исполнителя: проверки r7
+++(скобки, мёртвые uniform'ы, аудит имён) не включали проверку дублей идентификаторов.
+++
+++### Фикс
+++Старый блок SHAPE_KEYS удалён; в проекте одно объявление с ключами r7
+++(glow_int, wedge_int, low_dim, below_int, zen_w, p1..p5).
+++
+++### Новый барьер (чтобы класс ошибки не повторился)
+++Вне проекта добавлен и прогнан по ВСЕМУ проекту строгий валидатор:
+++- дубли top-level const/var/func в каждом .gd (локальные переменные функций не считаются);
+++- дубли uniform'ов в шейдере;
+++- каждое имя из set_shader_parameter панели (включая "sk_" + SHAPE_KEYS) существует в шейдере;
+++- каждая строка SHAPE содержит ровно ключи SHAPE_KEYS (без лишних и пропущенных);
+++- таблицы PAL/VEILP/SUNMOON/GROUND/MOONPOS: все 7 ключей, одинаковый состав ролей;
+++- PAL содержит роли glow/horizon/band/band2/mid/anti/zenith в каждом ключе;
+++- баланс скобок и кавычек.
+++Результат: ПРОЙДЕНО, 0 проблем.
+++
+++### Доставка r8
+++- файлы для ручной замены (зеркало структуры, 4 файла кода + доки);
+++- инкрементный патч Q7.32_SkyLight_r8_parsefix.patch (r7→r8) для тех, кто уже поставил r7;
+++- обновлённый полный патч Q7.32_SkyLight_r7_unipalette.patch (aa9dbbb→r8, исправленный);
+++- zip-поставки пересобраны, sha256 новые.
+ diff --git a/Q7.32.PreOmega/q_tools/DIAG_r7_2026-10-27.md b/Q7.32.PreOmega/q_tools/DIAG_r7_2026-10-27.md
+ new file mode 100644
+ index 0000000..32e104c
+diff --git a/Q7.32.PreOmega/Q7.32_SkyLight_r8_parsefix.patch b/Q7.32.PreOmega/Q7.32_SkyLight_r8_parsefix.patch
+new file mode 100644
+index 0000000..9e525c6
+--- /dev/null
++++ b/Q7.32.PreOmega/Q7.32_SkyLight_r8_parsefix.patch
+@@ -0,0 +1,15 @@
++diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++index 06c0466..4f59698 100644
++--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++@@ -224,10 +224,6 @@ const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
++ 	"p1", "p2", "p3", "p4", "p5"]
++ 
++ const PANEL_W := 352.0
++-# порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
++-const SHAPE_KEYS := ["wedge_int", "wedge_az", "wedge_k", "glow_int", "glow_exp", "zen_lift",
++-	"low_dim", "anti_p_lo", "anti_p_hi", "below_int", "band_w", "band_lo", "band_hi",
++-	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi", "arc_w", "arc_st"]
++ 
++ # Вуаль по K-ключам (§8.2, r7): master/sun/sun_exp/lift/warm + лунный шеен.
++ # r7: густота вуали = оптическая толщина плиты по лучу (hc_alpha), поэтому
+diff --git a/Q7.32.PreOmega/changes.md b/Q7.32.PreOmega/changes.md
+index fa40618..7bd07a9 100644
+--- a/Q7.32.PreOmega/changes.md
++++ b/Q7.32.PreOmega/changes.md
+@@ -1671,3 +1671,44 @@ Q7.30 (из кода изменён один SkyDebugUI.gd + стенд) + sha25
+ - инкрементный патч Q7.32_SkyLight_r8_parsefix.patch (r7→r8) для тех, кто уже поставил r7;
+ - обновлённый полный патч Q7.32_SkyLight_r7_unipalette.patch (aa9dbbb→r8, исправленный);
+ - zip-поставки пересобраны, sha256 новые.
++
++---
++
++## Q7.32_SkyLight_r9 «veilblob_linefix_arc24» (27.10.2026, раунд 6)
++
++### П.1 вуаль в зените
++Причина глубже альфы: цвет вуали = P(dir), то есть в зените «тёмное на тёмном» —
++глазу не за что зацепиться даже при заметной альфе. Добавлен `veil_blob` (тон самих
++образований, узор плотности d): ночи — тёмные силуэтные пятна поверх звёзд
++(рефы N2/N4/N5), дни — цветные облачные массы (O). Данные ключа в VEILP["blob"].
++Окклюзия звёзд/луны — прежняя честная альфа (1−veil_a).
++
++### П.3 линия горизонта — ПРИЧИНА (ответ заказчику)
++Ступень альфы вуали на h=0: выше горизонта луч идёт по слою по касательной
++(путь → максимум, альфа → 1), ниже горизонта луч слой НЕ пересекает (альфа = 0).
++В старой модели стык маскировал curtain (обнулял узор с обеих сторон у горизонта);
++в r7 curtain удалён по ТЗ §3.2 («у горизонта вуаль максимальна») — ступень вышла
++наружу линией через весь купол. Моя ошибка: не проверил непрерывность через ноль.
++Фикс: below_ext — вуаль продолжается ниже горизонта значением предела сверху и
++плавно тает к −8.6°; окна — константы формы, общие для всех ключей.
++Попутно убрано «молоко» ПОД горизонтом: клин ограничен надгоризонтом,
++тень ниже горизонта вступает окном −3.4° (below_int ночи = 1.0).
++
++### П.2 градиенты
++Найден мой инверсный гейт: зенитное затемнение защищало ядро зари множителем
++(1 − sstep(p1/2, p1, u)) — то есть действовало ТОЛЬКО внутри ядра; верх купола
++ночей не темнел вовсе. Исправлено на sstep(p1, p2, u). Ночи пересняты шире
++(p2/p3/p4), wedge_int ночей 0.8/1.2/1.3 = яркость горизонтной полосы (данные).
++
++### П.4 пресеты не таймлайн
++Записано в процесс: блендер t оставлен (вердикт «пока оставь»); палитры и формы
++проектируются по ключам НЕЗАВИСИМО; плавность стыков между ключами больше не
++является ограничением дизайна и не будет влиять на решения по палитрам.
++
++### П.5 эллипс +20%
++sk_arc_stretch 2.0 → 2.4 везде (дефолт шейдера, материал, слайдер панели).
++
++### Проверено
++strict_validate (дубли/имена/таблицы) — ПРОЙДЕНО; аудит мёртвых uniform'ов — нет;
++CPU-превью лестницы K0..K6 сверено с рефами N2/N4/N5 и дневным эталоном
++(scratch/out/r7_ladder_new.png, r7_day_old_vs_new.png).

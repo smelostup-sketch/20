@@ -1,0 +1,181 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index 4a6acb5..b573777 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -84,7 +84,7 @@ const ADAPTED := {
+ 	},
+ }
+ const SEQ := ["K0", "K1", "K2", "K3", "K4", "K5", "K6"]	# лестница K-ключей (SKY_TZ_LUT7 §2); ref2/O2 = support K4, не ключ
+-const PRESET_ELEV := [-30.0, -13.5, -5.0, -1.5, 0.5, 4.0, 15.0]	# высота солнца по ключам (§2)
++const PRESET_ELEV := [-30.0, -13.5, -5.0, 0.3, 0.5, 4.0, 15.0]	# K3: +0.3 (солнце НАД горизонтом, баг р5)	# высота солнца по ключам (§2)
+ const PRESET_AZIM := [180.0, 180.0, 180.0, 180.0, 180.0, 180.0, 180.0]
+ const LADDER_NAMES := ["K0 глубокая ночь", "K1 астро-сумерки", "K2 синий час", "K3 контровой закат",
+ 	"K4 багровый закат", "K5 золотой час", "K6 поздний день"]
+@@ -154,6 +154,10 @@ const GROUND := {
+ 	"K5": {"key": Color(1.0, 0.851, 0.627), "e": 2.0, "bounce": Color(0.878, 0.690, 0.502), "be": 0.4},
+ 	"K6": {"key": Color(1.0, 0.941, 0.816), "e": 1.8, "bounce": Color(0.941, 0.863, 0.784), "be": 0.4},
+ }
++# SUNARC (р6): arc_w = вес радиальной рампы (дуги от солнца); окна band/band2 у K0-K2
++# заданы В ЕДИНИЦАХ u = угол_от_солнца/π (ступени rise-only: horizon→band→band2→zen_mid
++# →anti); у K3-K6 (arc_w=0) те же поля работают в прежних h-единицах. band2_hi..+0.18 =
++# окно среднего купола, 0.75-0.97 = окно антисоляра (константы шейдера).
+ # Форма градиента купола по K-ключам (feedback 27.10.26 «скудный градиент»):
+ # wedge/glow = ядро и клин зари (у солнца), zen_lift = средняя точка полюсов,
+ # low_dim = притемнение купола при низком солнце, anti_p_lo = ширина тёмного
+@@ -164,31 +168,31 @@ const GROUND := {
+ const SHAPE := {
+ 	"K0": {"wedge_int": 0.0, "wedge_az": 2.2, "wedge_k": 14.0, "glow_int": 0.0, "glow_exp": 12.0,
+ 		"zen_lift": 4.0, "low_dim": 0.30, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 0.95, "band_lo": 0.06, "band_hi": 0.28, "band2_w": 0.98, "band2_lo": 0.20, "band2_hi": 0.55, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.85},
++		"band_w": 0.95, "band_lo": 0.19, "band_hi": 0.32, "band2_w": 0.98, "band2_lo": 0.30, "band2_hi": 0.48, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.85, "arc_w": 1.0},
+ 	"K1": {"wedge_int": 0.95, "wedge_az": 3.0, "wedge_k": 70.0, "glow_int": 0.5, "glow_exp": 80.0,
+ 		"zen_lift": 6.0, "low_dim": 0.25, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 1.00, "band_lo": 0.075, "band_hi": 0.26, "band2_w": 0.95, "band2_lo": 0.17, "band2_hi": 0.44, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.90},
++		"band_w": 1.00, "band_lo": 0.10, "band_hi": 0.24, "band2_w": 0.95, "band2_lo": 0.22, "band2_hi": 0.40, "top_w": 0.90, "top_lo": 0.30, "top_hi": 0.90, "arc_w": 1.0},
+ 	"K2": {"wedge_int": 0.90, "wedge_az": 2.6, "wedge_k": 35.0, "glow_int": 0.25, "glow_exp": 50.0,
+ 		"zen_lift": 5.0, "low_dim": 0.22, "anti_p_lo": 1.4, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 1.00, "band_lo": 0.14, "band_hi": 0.40, "band2_w": 0.95, "band2_lo": 0.34, "band2_hi": 0.60, "top_w": 0.85, "top_lo": 0.62, "top_hi": 0.97},
++		"band_w": 1.00, "band_lo": 0.10, "band_hi": 0.30, "band2_w": 0.95, "band2_lo": 0.26, "band2_hi": 0.46, "top_w": 0.85, "top_lo": 0.62, "top_hi": 0.97, "arc_w": 1.0},
+ 	"K3": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
+ 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90},
++		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0},
+ 	"K4": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
+ 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90},
++		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0},
+ 	"K5": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
+ 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90},
++		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0},
+ 	"K6": {"wedge_int": 0.35, "wedge_az": 3.0, "wedge_k": 4.0, "glow_int": 0.30, "glow_exp": 6.0,
+ 		"zen_lift": 2.0, "low_dim": 0.25, "anti_p_lo": 0.6, "anti_p_hi": 3.0, "below_int": 0.55,
+-		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90},
++		"band_w": 0.0, "band_lo": 0.05, "band_hi": 0.30, "band2_w": 0.0, "band2_lo": 0.22, "band2_hi": 0.55, "top_w": 0.00, "top_lo": 0.35, "top_hi": 0.90, "arc_w": 0.0},
+ }
+ const PANEL_W := 352.0
+ # порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
+ const SHAPE_KEYS := ["wedge_int", "wedge_az", "wedge_k", "glow_int", "glow_exp", "zen_lift",
+ 	"low_dim", "anti_p_lo", "anti_p_hi", "below_int", "band_w", "band_lo", "band_hi",
+-	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi"]
++	"band2_w", "band2_lo", "band2_hi", "top_w", "top_lo", "top_hi", "arc_w"]
+ 
+ # Mid-стоп рампы P(dir) по K-ключам (§8.1; K0-K2 — извлечение с N-рефов, K3-K6 —
+ # первый проход §8.1; всё inv-Filmic как M1)
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+index 0d3c40a..c59b2d1 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+@@ -204,6 +204,12 @@ uniform float sk_band2_hi = 0.55;
+ uniform float sk_top_w : hint_range(0.0, 1.0) = 0.0;
+ uniform float sk_top_lo = 0.35;
+ uniform float sk_top_hi = 0.90;
++// SUNARC (фидбек 27.10.26 р3 п.3, раунд 6): вес радиальной рампы стоков по угловому
++// удалению от солнца u = atan2(|dir×sd|, dir·sd)/π (0 = солнце, 1 = антисоляр).
++// Изолинии градиента = дуги вокруг солнца; солнце в надире → градиент стартует под
++// нами, зенит (= антисоляр) = самая тёмная точка. 0 = прежний купол (K3-K6 побитово;
++// при 0 arc-ветка НЕ вычисляется, а не смешивается с нулевым весом).
++uniform float sk_arc_w : hint_range(0.0, 1.0) = 0.0;
+ uniform float sk_dither : hint_range(0.0, 1.0) = 1.0;
+ 
+ // === Освещение — прямой источник (солнце/луна). Конвенция имён продакшн-неба: ===
+@@ -313,6 +319,30 @@ bool layer_interval(vec3 dir, float bottom, float top, out float t_near, out flo
+ // Палитра M1 (sk_*), пре-адаптирована под Filmic (skylab_palette_tool, упакован).
+ // Порядок темноты (самотест R7, elev 0): антисоляр < зенит < солнечный горизонт.
+ // Сигнатура v0.5.3 имела неиспользуемый второй параметр (sundir) — остаток C8; убран.
++// SUNARC: радиальная рампа стопов по u (общая для купола и P(dir) вуали — рассинхрон
++// «вуаль другого цвета» исключён). Лестница стопов мягкими СТУПЕНЯМИ (rise-only, без
++// спада): каждый стоп держится до следующего — перекрытий-щелей нет; переход стопа =
++// его окно rise (0.4·окна, как пояса r2). Порядок стопов: ядро зари (sk_horizon) →
++// слива/бирюза (band) → голубой (band2) → средний купол (zen_mid) → антисоляр (anti_c,
++// окно 0.75-0.97 фикс: терминал рампы всегда антисоляр).
++vec3 rad_ramp(vec3 dir, vec3 sd, out float u_o) {
++	// численно устойчивый угол (фидбек 27.10.26 р6): atan2(|cross|, dot) ровнее acos
++	// у u=0 и u=1; выбор формы подтверждён тестом угла в sim (расхождение < 1e-9).
++	float u = atan(length(cross(dir, sd)), dot(dir, sd)) / 3.141592653589793;
++	u_o = u;
++	vec3 zen_mid = sk_zenith * sk_zen_lift;
++	float sh = smoothstep(-0.03, 0.85, sd.y);
++	vec3 anti_c = mix(sk_anti_col, zen_mid, 0.45 * sh);
++	vec3 c = sk_horizon;
++	float e1 = max(0.4 * (sk_band_hi - sk_band_lo), 0.02);
++	c = mix(c, sk_band_col, sk_band_w * sstep(sk_band_lo, sk_band_lo + e1, u));
++	float e2 = max(0.4 * (sk_band2_hi - sk_band2_lo), 0.02);
++	c = mix(c, sk_band2_col, sk_band2_w * sstep(sk_band2_lo, sk_band2_lo + e2, u));
++	c = mix(c, zen_mid, smoothstep(sk_band2_hi, sk_band2_hi + 0.18, u));
++	c = mix(c, anti_c, smoothstep(0.75, 0.97, u));
++	return c;
++}
++
+ vec3 sky_gradient(vec3 dir) {
+ 	// v0.5.1: МОДЕЛЬ ДВУХ ПОЛЮСОВ + ГОРИЗОНТ (по ТЗ заказчика):
+ 	//   полюс 1 = направление источника → светлый; полюс 2 = противоположный → тёмный;
+@@ -355,6 +385,23 @@ vec3 sky_gradient(vec3 dir) {
+ 	// гейт sk_top_w: K3-K6 = 0 → побитово прежний купол
+ 	float w_top = sk_top_w * smoothstep(sk_top_lo, sk_top_hi, h);
+ 	base = mix(base, sk_zenith, clamp(w_top, 0.0, 1.0));
++	// === КОНТРАКТ ПОРЯДКА МАРОК/ЧЛЕНОВ КУПОЛА (фидбек 27.10.26 р6, п.3): ===
++	//   1) двухполюсный базис + пояса по h + верхний зенитный стоп (выше, r5-путь);
++	//   2) SUNARC: mix к rad_ramp по sk_arc_w (при 0 ветка НЕ считается — uniform-гейт,
++	//      побитовая совместимость r5, а не mix-с-нулём);
++	//   3) wedge — аэрозольная дымка горизонта (h, азимут к солнцу): ПОСЛЕ дуг, вес у
++	//      ночей мал и узок (wedge_k 35-70), последовательность стопов не уничтожает
++	//      (проверено тестом wedge on/off в sim);
++	//   4) glow-ядро (радиальное, pow(dot, glow_exp)) — белое ядро зари поверх дуг;
++	//   5) below-horizon теневой mix (только h<0 — дуг над горизонтом не касается);
++	//   6) low_dim — скаляр по высоте солнца (hue не меняет);
++	//   7) dither. Последующие члены дуги НЕ выпрямляют: wedge/below — по h, но wedge
++	//      узкий, below — ниже горизонта, low_dim — скаляр.
++	if (sk_arc_w > 0.0) {
++		float u_arc = 0.0;
++		vec3 rad = rad_ramp(dir, sd, u_arc);
++		base = mix(base, rad, sk_arc_w);
++	}
+ 	// горизонт: добавочный свет, спадающий с удалением от источника вдоль горизонта
+ 	vec2 dH = vec2(dir.x, dir.z);
+ 	vec2 sH = vec2(sd.x, sd.z);
+@@ -575,6 +622,13 @@ vec3 sky_palette(vec3 dir) {
+ 	c = mix(c, sk_zenith, smoothstep(0.30, 0.80, h));
+ 	// ФИКС Б (баг «светлое пятно в антисоляре»): антисолярный член той же формы, что в
+ 	// куполе: в самой тёмной точке купола вуаль берёт тёмный цвет, а не средний пояс.
++	// SUNARC: вуаль берёт ту же радиальную рампу (порядок: рампа P → дуга → антисоляр
++	// → glow → below), иначе вуаль «выпрямила» бы дуги своим тоном
++	if (sk_arc_w > 0.0) {
++		float u_p = 0.0;
++		vec3 rad_p = rad_ramp(dir, normalize(sk_sun_dir), u_p);
++		c = mix(c, rad_p, sk_arc_w);
++	}
+ 	vec3 sd_p = normalize(sk_sun_dir);
+ 	float tp = clamp(0.5 + 0.5 * dot(dir, sd_p), 0.0, 1.0);
+ 	float w_ant = pow(clamp(1.0 - tp * 2.0, 0.0, 1.0), 1.6) * (1.0 - smoothstep(0.0, 0.5, abs(h)));
+diff --git a/Q7.32.PreOmega/RoadMap.md b/Q7.32.PreOmega/RoadMap.md
+index a2dbdce..ccac2e3 100644
+--- a/Q7.32.PreOmega/RoadMap.md
++++ b/Q7.32.PreOmega/RoadMap.md
+@@ -368,7 +368,25 @@ q_tools/adr_movement_unification.md и q_tools/cleanup_inventory.md).
+       0.12→0.18, K2 0.25→0.32), чтобы укрытие читалось. Ручки пола и преломления
+       выведены в меню 8. Приёмка: hc_debug=2 + глаза (звёзды в blobs вуали тусклее и
+       дрожат, луна за вуалью плывёт).
+-- [ ] В ОЧЕРЕДИ (фидбек 27.10.26 р3, п.3): ГРАДИЕНТ — ДУГА ОТ СОЛНЦА. Координату рампы
++- [x] ОЧЕРЕДЬ р3 п.3 ВЫПОЛНЕНА: ВЕРСИЯ Q7.32_SkyLight_r6 «sunarc»: ГРАДИЕНТ — ДУГА ОТ
++      СОЛНЦА. Координата рампы u = atan2(|dir×sd|, dir·sd)/π (0 = солнце, 1 = антисоляр;
++      форма угла выбрана тестом: atan2 ровнее acos у u=0/1, расхождение в double 1.6e-15).
++      Радиальная рампа стопов rad_ramp() (rise-only ступени: horizon→band→band2→zen_mid→
++      anti(0.75-0.97 фикс)) общая для купола и P(dir) вуали. Гейт sk_arc_w из лестницы
++      SHAPE: K0-K2 = 1 (дуги), K3-K6 = 0 (windgate: при 0 arc-ветка НЕ вычисляется,
++      побитовость r5 подтверждена тестом max|delta| = 0.0 на K3-K6). КОНТРАКТ ПОРЯДКА
++      ЧЛЕНОВ купола зафиксирован комментарием: базис+h-пояса+top → arc-mix → wedge →
++      glow-ядро → below-horizon → low_dim → dither; wedge-аудит: влияние клина в 3-15°
++      ≤ 13/255 (хвост белого ядра), насыщенность стопов 4-14° > 0.10 — последовательность
++      не уничтожена. ТЕСТЫ: надир (солнце -90) — кольцо горизонта равномерно (разброс 0),
++      зенит темнее; K2→K3 sweep t 3.0-4.0 шаг 0.025 — 0 изолированных разрывов яркости/hue;
++      тест дуги: на elev 15° цвета меняются с азимутом (r5 был плоским). КУБМАПА: тот же
++      sky()-шейдер (цветовая модель одна), обновление REALTIME во время движения t и
++      SETTLE_FRAMES=30 после (Sky.process_mode, способ 1 §7), radiance 256 дефолт —
++      освещения догоняет дуги без лага. БОНУС-ФИКС БАГА: K3 НЕ ночь — PRESET_ELEV K3
++      -1.5 → +0.3 (солнце НАД горизонтом, диск виден; на рефе O1 солнце просто не в
++      кадре; лестница монотонна: -5 → +0.3 → +0.5).
++- [x] В ОЧЕРЕДИ (фидбек 27.10.26 р3, п.3) — ВЫПОЛНЕН, см. r6 выше: ГРАДИЕНТ — ДУГА ОТ СОЛНЦА. Координату рампы
+       перевести с высоты h на угловое удаление от солнца u = acos(dot(dir, sk_sun_dir))/π:
+       окна поясов (band/band2/top) и hmask становятся функциями u → изолинии градиента
+       дуги вокруг солнца; солнце в надире → градиент стартует строго под нами, зенит

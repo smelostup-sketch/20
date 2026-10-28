@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="SkyPreset" format=3 uid="uid://b56m24bm6fd46"]
+
+[ext_resource type="Texture2D" uid="uid://c84bpm1nklp5i" path="res://SkyEnvironment/SkyPreset/preset_06.png" id="1_prev"]
+[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://xpt0so3xggq8" path="res://SkyEnvironment/SkyLightProfile.gd" id="3_light"]
+
+[sub_resource type="Resource" id="light_06"]
+script = ExtResource("3_light")
+key_color = Color(1, 0.851, 0.627, 1)
+key_energy = 2.0
+moon_light_color = Color(0.753, 0.784, 0.91, 1)
+
+[resource]
+script = ExtResource("2_script")
+preset_name = "06 · K5 золотой час (Q7.33 перенос, ×0.785)"
+preview = ExtResource("1_prev")
+sun_elevation = 4.0
+moon_elevation = 45.0
+moon_azimuth = 270.0
+col_glow = Color(1.134342, 0.612103, 0.319088, 1)
+col_horizon = Color(0.954328, 0.54914, 0.501776, 1)
+col_band = Color(0.508514, 0.393211, 0.954208, 1)
+col_band2 = Color(0.320035, 0.327288, 1.145487, 1)
+col_mid = Color(0.248838, 0.302386, 1.217741, 1)
+col_anti = Color(0.113323, 0.125264, 0.487155, 1)
+col_halo = Color(1.134342, 0.612103, 0.319088, 1)
+p2 = 0.072
+p3 = 0.15
+p4 = 0.29
+p5 = 0.505
+sun_disc_color = Color(1, 0.941, 0.784, 1)
+sun_size_deg = 2.2
+sun_core_int = 6.0
+streak_int = 0.3
+light = SubResource("light_06")
+metadata/_custom_type_script = "uid://c6o4hvxauaari"

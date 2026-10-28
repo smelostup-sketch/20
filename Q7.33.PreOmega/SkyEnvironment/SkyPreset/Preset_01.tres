@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="SkyPreset" format=3 uid="uid://wefsa5v7wav2"]
+
+[ext_resource type="Texture2D" uid="uid://b7x1xdfr78l8f" path="res://SkyEnvironment/SkyPreset/preset_01.jpg" id="1_prev"]
+[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://xpt0so3xggq8" path="res://SkyEnvironment/SkyLightProfile.gd" id="3_light"]
+
+[sub_resource type="Resource" id="light_01"]
+script = ExtResource("3_light")
+key_color = Color(0.333, 0.47, 0.684, 1)
+key_energy = 0.097
+moon_light_color = Color(0.933, 0.949, 1, 1)
+
+[resource]
+script = ExtResource("2_script")
+preset_name = "01 · K0 глубокая ночь (Q7.33 перенос, ×0.7) [H: glow/horizon разведены x0.92]"
+preview = ExtResource("1_prev")
+sun_elevation = -30.0
+moon_elevation = 62.0
+moon_azimuth = 160.0
+col_glow = Color(0.049427, 0.228607, 0.694806, 1)
+col_horizon = Color(0.045473, 0.210318, 0.639222, 1)
+col_band = Color(0.012693, 0.051593, 0.200166, 1)
+col_band2 = Color(0.006023, 0.035787, 0.148632, 1)
+col_mid = Color(0.005665, 0.016026, 0.0561, 1)
+col_anti = Color(0.00315, 0.00882, 0.03087, 1)
+col_halo = Color(0.049427, 0.228607, 0.694806, 1)
+p1 = 0.05
+p2 = 0.23
+p3 = 0.42
+p4 = 0.6
+p5 = 0.75
+star_intensity = 1.0
+sun_disc_color = Color(1, 0.914, 0.753, 1)
+sun_size_deg = 1.5
+sun_core_int = 2.0
+glow_int = 0.1
+moon_color = Color(0.933, 0.949, 1, 1)
+moon_glow_int = 0.35
+light = SubResource("light_01")
+metadata/_custom_type_script = "uid://c6o4hvxauaari"

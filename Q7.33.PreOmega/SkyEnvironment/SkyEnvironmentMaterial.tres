@@ -1,0 +1,48 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://SkyEnvironment/SkyEnvironment.gdshader" id="1_sh"]
+[ext_resource type="Texture2D" path="res://SkyEnvironment/streak_glare.png" id="2_streak"]
+[ext_resource type="Texture2D" path="res://SkyEnvironment/moon_detail.png" id="3_moon"]
+
+[resource]
+shader = ExtResource("1_sh")
+shader_parameter/sky_color = Color(0.32, 0.47, 0.68, 1)
+shader_parameter/use_gradient_sky = true
+shader_parameter/sun_enabled = true
+shader_parameter/moon_enabled = true
+shader_parameter/sun_disk_color = Vector3(1, 0.953, 0.816)
+shader_parameter/sun_size_deg = 1.8
+shader_parameter/sun_core_int = 5.0
+shader_parameter/sun_g1_int = 0.35
+shader_parameter/sun_g1_exp = 8.0
+shader_parameter/sun_g2_int = 0.12
+shader_parameter/sun_g2_exp = 2.5
+shader_parameter/moon_size = 0.02
+shader_parameter/moon_color = Vector3(0.753, 0.784, 0.91)
+shader_parameter/moon_glow_int = 0.0
+shader_parameter/moon_glow_exp = 40.0
+shader_parameter/star_intensity = 0.0
+shader_parameter/streak_tex = ExtResource("2_streak")
+shader_parameter/streak_int = 0.5
+shader_parameter/moon_detail_tex = ExtResource("3_moon")
+shader_parameter/moon_detail_int = 0.5
+shader_parameter/sk_mid = Vector3(0.10758, 0.036102, 0.078501)
+shader_parameter/sk_horizon = Vector3(1.78, 0.0707, 0.0325)
+shader_parameter/sk_glow_col = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_glow_int = 0.3
+shader_parameter/sk_glow_exp = 6.0
+shader_parameter/sk_halo_col = Vector3(2, 0.078501, 0.036102)
+shader_parameter/sk_streak_gate_lo = 45.0
+shader_parameter/sk_streak_gate_hi = 60.0
+shader_parameter/sky_debug_mode = 0
+shader_parameter/sk_sun_dir = Vector3(0, 0, -1)
+shader_parameter/sk_dither = 1.0
+shader_parameter/sk_p1 = 0.010
+shader_parameter/sk_p2 = 0.075
+shader_parameter/sk_p3 = 0.155
+shader_parameter/sk_p4 = 0.300
+shader_parameter/sk_p5 = 0.520
+shader_parameter/sk_p6 = 1.0
+shader_parameter/sk_sharp = 1.0
+shader_parameter/sk_arc_stretch = 2.4
+shader_parameter/sk_anti_col = Vector3(0.0202, 0.00718, 0.0152)

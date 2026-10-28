@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="SkyPreset" format=3 uid="uid://b8f5slbspa04b"]
+
+[ext_resource type="Texture2D" uid="uid://b4ns02rcaqwjn" path="res://SkyEnvironment/SkyPreset/preset_04.jpg" id="1_prev"]
+[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://xpt0so3xggq8" path="res://SkyEnvironment/SkyLightProfile.gd" id="3_light"]
+
+[sub_resource type="Resource" id="light_04"]
+script = ExtResource("3_light")
+key_color = Color(0.224, 0.284, 0.652, 1)
+key_energy = 0.0363
+moon_light_color = Color(0.847, 0.878, 0.961, 1)
+
+[resource]
+script = ExtResource("2_script")
+preset_name = "04 · K1 астро-сумерки (Q7.33 перенос, ×0.75; H: band x1.25 монотонность)"
+preview = ExtResource("1_prev")
+sun_elevation = -13.5
+moon_elevation = 40.0
+moon_azimuth = 205.0
+col_glow = Color(1.270072, 0.270866, 1.270072, 1)
+col_horizon = Color(1.125148, 0.194222, 1.158752, 1)
+col_band = Color(0.231044, 0.114753, 1.223043, 1)
+col_band2 = Color(0.000494, 0.184835, 0.95274, 1)
+col_mid = Color(0.01845, 0.109658, 1.5, 1)
+col_anti = Color(0.000494, 0.001699, 0.030323, 1)
+col_halo = Color(1.270072, 0.270866, 1.270072, 1)
+p1 = 0.02
+p2 = 0.12
+p3 = 0.24
+p4 = 0.42
+p5 = 0.6
+star_intensity = 0.7
+sun_disc_color = Color(1, 0.914, 0.753, 1)
+sun_size_deg = 1.5
+sun_core_int = 2.0
+glow_int = 0.2
+moon_color = Color(0.847, 0.878, 0.961, 1)
+moon_glow_int = 0.2
+light = SubResource("light_04")
+metadata/_custom_type_script = "uid://c6o4hvxauaari"
