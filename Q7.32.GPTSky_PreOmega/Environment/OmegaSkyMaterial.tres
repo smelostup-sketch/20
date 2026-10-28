@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dm7677xshkchq"]
+
+[ext_resource type="Shader" uid="uid://8qqtp7spx6vj" path="res://Environment/OmegaSky.gdshader" id="1_m712l"]
+
+[resource]
+shader = ExtResource("1_m712l")

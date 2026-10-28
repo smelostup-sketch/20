@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CreatureProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dfji0baj578n0" path="res://Scripts/Movement/CreatureProfile.gd" id="1_prof"]
+
+[resource]
+script = ExtResource("1_prof")
+speed = 6.0
+acceleration = 10.0
+deceleration = 15.0
+action_exit_deceleration = 36.0
+gravity = 20.0
+jump_force = 8.0
+landing_damping = 10.0
+facing_rate = 12.0
+can_jump = true
+can_dash = true
+can_dodge = true
+can_leap = true
+can_stealth = true
+allow_strafe = true
