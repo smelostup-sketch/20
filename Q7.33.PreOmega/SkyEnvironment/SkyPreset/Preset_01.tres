@@ -12,18 +12,18 @@ moon_light_color = Color(0.933, 0.949, 1, 1)
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "01 · K0 глубокая ночь (Q7.33 перенос, ×0.7) [H: glow/horizon разведены x0.92]"
+preset_name = "01 · Ночное небо с луной (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
 sun_elevation = -30.0
 moon_elevation = 62.0
 moon_azimuth = 160.0
-col_glow = Color(0.049427, 0.228607, 0.694806, 1)
-col_horizon = Color(0.045473, 0.210318, 0.639222, 1)
-col_band = Color(0.012693, 0.051593, 0.200166, 1)
-col_band2 = Color(0.006023, 0.035787, 0.148632, 1)
-col_mid = Color(0.005665, 0.016026, 0.0561, 1)
-col_anti = Color(0.00315, 0.00882, 0.03087, 1)
-col_halo = Color(0.049427, 0.228607, 0.694806, 1)
+col_glow = Color(0.533333, 0.666667, 0.917647, 1)
+col_horizon = Color(0.258824, 0.360784, 0.537255, 1)
+col_band = Color(0.192157, 0.282353, 0.447059, 1)
+col_band2 = Color(0.129412, 0.203922, 0.349020, 1)
+col_mid = Color(0.082353, 0.117647, 0.184314, 1)
+col_anti = Color(0.035294, 0.054902, 0.117647, 1)
+col_halo = Color(0.255726, 0.449653, 1.527873, 1)
 p1 = 0.05
 p2 = 0.23
 p3 = 0.42

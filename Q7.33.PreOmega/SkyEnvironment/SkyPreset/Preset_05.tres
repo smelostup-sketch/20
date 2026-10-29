@@ -12,18 +12,18 @@ moon_light_color = Color(0.753, 0.784, 0.91, 1)
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "05 · K2 синий час (Q7.33 перенос, ×0.78)"
+preset_name = "05 · Аниме-пейзаж фиолетовое небо (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
 sun_elevation = -5.0
 moon_elevation = 26.0
 moon_azimuth = 225.0
-col_glow = Color(1.506625, 0.17407, 1.280326, 1)
-col_horizon = Color(0.398695, 0.098985, 0.965213, 1)
-col_band = Color(0.067807, 0.062512, 0.774212, 1)
-col_band2 = Color(0.002748, 0.050438, 0.461893, 1)
-col_mid = Color(0, 0.012999, 0.317319, 1)
-col_anti = Color(0, 0.0078, 0.190398, 1)
-col_halo = Color(1.506625, 0.17407, 1.280326, 1)
+col_glow = Color(0.725490, 0.321569, 0.525490, 1)
+col_horizon = Color(0.584314, 0.298039, 0.796078, 1)
+col_band = Color(0.380392, 0.262745, 0.639216, 1)
+col_band2 = Color(0.266667, 0.235294, 0.435294, 1)
+col_mid = Color(0.105882, 0.164706, 0.247059, 1)
+col_anti = Color(0.015686, 0.019608, 0.050980, 1)
+col_halo = Color(0.579424, 0.092570, 0.247234, 1)
 p1 = 0.015
 p2 = 0.14
 p3 = 0.28

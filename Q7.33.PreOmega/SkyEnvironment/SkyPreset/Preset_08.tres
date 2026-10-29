@@ -12,18 +12,18 @@ moon_light_color = Color(0.753, 0.784, 0.91, 1)
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "08 · K3 контровой закат (Q7.33 перенос, ×0.752)"
+preset_name = "08 · Закатные облака над замком (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
 sun_elevation = 0.3
 moon_elevation = 55.0
 moon_azimuth = 250.0
-col_glow = Color(1.125854, 0.367062, 0.082125, 1)
-col_horizon = Color(1.01334, 0.348038, 0.139358, 1)
-col_band = Color(0.510256, 0.262969, 0.395256, 1)
-col_band2 = Color(0.220668, 0.214001, 0.54256, 1)
-col_mid = Color(0.141095, 0.200546, 0.583035, 1)
-col_anti = Color(0.077179, 0.113356, 0.333485, 1)
-col_halo = Color(1.125854, 0.367062, 0.082125, 1)
+col_glow = Color(0.862745, 0.654902, 0.231373, 1)
+col_horizon = Color(0.811765, 0.411765, 0.200000, 1)
+col_band = Color(0.756863, 0.250980, 0.266667, 1)
+col_band2 = Color(0.619608, 0.349020, 0.454902, 1)
+col_mid = Color(0.403922, 0.380392, 0.584314, 1)
+col_anti = Color(0.286275, 0.427451, 0.588235, 1)
+col_halo = Color(1.115375, 0.427769, 0.052024, 1)
 p1 = 0.011
 p2 = 0.078
 p3 = 0.158

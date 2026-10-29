@@ -20,6 +20,17 @@ var moon_elevation: float = 50.0
 var sun_enabled: bool = true
 var moon_enabled: bool = true
 
+# --- Q7.34 (S7/S8, баги 3.2/3.4): экранный базис стрика + radiance на драге ---
+# Стрик-базис пишется ТОЛЬКО при streak_int > 0 (иначе 0 затрат, п. «не трогать
+# производительность» плана). Radiance cubemap (process_mode = INCREMENTAL в сцене)
+# добирается кадрами: на время правок ручек переключаем на REALTIME, после QUIET_FRAMES
+# кадров покоя возвращаем INCREMENTAL — отражения/ambient не «догоняют» ползунки.
+var _streak_on: bool = false
+var _dirty_frames: int = 1000000
+var _sky: Sky = null
+
+const QUIET_FRAMES := 30
+
 
 func _ready() -> void:
 	if initial_preset != null:
@@ -29,6 +40,63 @@ func _ready() -> void:
 		if light_controller != null:
 			light_controller.set_key_light_energy(sun_energy)
 			light_controller.set_moon_light_energy(moon_energy)
+	_sky = _find_sky()
+	var si = get_shader_param("streak_int")
+	_streak_on = si != null and float(si) > 0.0
+
+
+## Q7.34 (S7): Sky берём из WorldEnvironment сцены (экспорт не плодим: сцена одна).
+func _find_sky() -> Sky:
+	var root := get_tree().current_scene
+	if root == null:
+		return null
+	for node in root.find_children("", "WorldEnvironment", true, false):
+		var env := (node as WorldEnvironment).environment
+		if env != null and env.sky != null:
+			return env.sky
+	return null
+
+
+## Q7.34 (S7/S8): покадровый экранный базис стрика: right камеры, спроектированный
+## перпендикулярно направлению на солнце. При вырождении (камера смотрит вдоль
+## базиса) — up камеры; оба случая полюсно-безопасны, NaN исключён.
+func _update_streak_basis() -> void:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var sd := _direction(sun_azimuth, sun_elevation)
+	var b := cam.global_transform.basis
+	var rr := b.x - sd * b.x.dot(sd)
+	if rr.length_squared() < 1e-10:
+		rr = b.y - sd * b.y.dot(sd)
+	if rr.length_squared() < 1e-10:
+		return
+	sky_material.set_shader_parameter("sk_streak_right", rr.normalized())
+
+
+## Q7.34 (S7): на время правок — radiance REALTIME (без задержки доборки), после
+## QUIET_FRAMES кадров покоя — штатный INCREMENTAL (цена кадра как в сцене).
+func _tick_sky_mode() -> void:
+	if _sky == null:
+		return
+	if _dirty_frames < QUIET_FRAMES:
+		_dirty_frames += 1
+		if _sky.process_mode != Sky.PROCESS_MODE_REALTIME:
+			_sky.process_mode = Sky.PROCESS_MODE_REALTIME
+	elif _sky.process_mode != Sky.PROCESS_MODE_INCREMENTAL:
+		_sky.process_mode = Sky.PROCESS_MODE_INCREMENTAL
+
+
+func _mark_dirty() -> void:
+	_dirty_frames = 0
+
+
+func _process(_delta: float) -> void:
+	if sky_material == null:
+		return
+	if _streak_on:
+		_update_streak_basis()
+	_tick_sky_mode()
 
 
 ## ОДИН _direction(azimuth, elevation) на шейдер и на свет (п. 12.2):
@@ -42,6 +110,7 @@ func _apply_all() -> void:
 	if sky_material == null:
 		push_warning("SkyEnvironmentController: sky_material is not assigned.")
 		return
+	_mark_dirty()
 
 	var sun_dir: Vector3 = _direction(sun_azimuth, sun_elevation)
 	var moon_dir: Vector3 = _direction(moon_azimuth, moon_elevation)
@@ -85,6 +154,7 @@ func set_moon_enabled(enabled: bool) -> void:
 func apply_palette(preset: SkyPreset) -> void:
 	if preset == null or sky_material == null:
 		return
+	_mark_dirty()
 	sky_material.set_shader_parameter("sk_glow_col", preset.col_glow)
 	sky_material.set_shader_parameter("sk_horizon", preset.col_horizon)
 	sky_material.set_shader_parameter("sk_band_col", preset.col_band)
@@ -100,14 +170,22 @@ func apply_palette(preset: SkyPreset) -> void:
 	sky_material.set_shader_parameter("sk_p6", preset.p6)
 	sky_material.set_shader_parameter("sk_sharp", preset.sharp)
 	sky_material.set_shader_parameter("sk_arc_stretch", preset.arc_stretch)
+	sky_material.set_shader_parameter("sk_breathe", preset.breathe)	# COLORS6: «дыхание» купола
+	sky_material.set_shader_parameter("sk_squeeze", preset.squeeze)	# COLORS7: компенсация складки
 	sky_material.set_shader_parameter("sk_dither", 1.0 if preset.dither else 0.0)
 	sky_material.set_shader_parameter("star_intensity", preset.star_intensity)
+	# Q7.34 (COLORS5): режим тонмапа — материал и Environment переключаются вместе
+	sky_material.set_shader_parameter("sk_tonemap", 1 if preset.tonemap_linear else 0)
+	if light_controller != null:
+		light_controller.set_tonemap_linear(preset.tonemap_linear)
 
 
 ## Солнце и луна: диск, ореолы, стрик, кратеры (данные пресета → материал).
 func apply_sources(preset: SkyPreset) -> void:
 	if preset == null or sky_material == null:
 		return
+	_mark_dirty()
+	_streak_on = preset.streak_int > 0.0
 	sky_material.set_shader_parameter("sun_disk_color", preset.sun_disc_color)
 	sky_material.set_shader_parameter("sun_size_deg", preset.sun_size_deg)
 	sky_material.set_shader_parameter("sun_core_int", preset.sun_core_int)
@@ -148,6 +226,9 @@ func apply_preset(preset: SkyPreset) -> void:
 func set_shader_param(param: StringName, value: Variant) -> void:
 	if sky_material != null:
 		sky_material.set_shader_parameter(param, value)
+		_mark_dirty()
+		if param == &"streak_int":
+			_streak_on = float(value) > 0.0
 
 
 func get_shader_param(param: StringName) -> Variant:

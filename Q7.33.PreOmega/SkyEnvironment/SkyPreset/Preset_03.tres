@@ -1,9 +1,37 @@
 [gd_resource type="Resource" script_class="SkyPreset" format=3 uid="uid://doih4t43ie4mn"]
 
 [ext_resource type="Texture2D" uid="uid://bqlcoeknaurgd" path="res://SkyEnvironment/SkyPreset/preset_03.jpg" id="1_jkll0"]
-[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="1_p56o8"]
+[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://xpt0so3xggq8" path="res://SkyEnvironment/SkyLightProfile.gd" id="3_light"]
+
+[sub_resource type="Resource" id="light_03"]
+script = ExtResource("3_light")
+key_color = Color(1, 0.75, 0.55, 1)
+key_energy = 2
+moon_light_color = Color(0.753, 0.784, 0.91, 1)
+ambient_energy = 1.0
 
 [resource]
-script = ExtResource("1_p56o8")
+script = ExtResource("2_script")
+preset_name = "03 · Аниме-небо с падающей звездой (Q7.34, палитра заказчика)"
 preview = ExtResource("1_jkll0")
+sun_elevation = 0
+sun_azimuth = 180.0
+moon_elevation = 50.0
+moon_azimuth = 0.0
+col_glow = Color(0.796078, 0.490196, 0.694118, 1)
+col_horizon = Color(0.525490, 0.388235, 0.658824, 1)
+col_band = Color(0.325490, 0.262745, 0.423529, 1)
+col_band2 = Color(0.235294, 0.192157, 0.349020, 1)
+col_mid = Color(0.156863, 0.137255, 0.274510, 1)
+col_anti = Color(0.054902, 0.047059, 0.121569, 1)
+col_halo = Color(0.798627, 0.211938, 0.505616, 1)
+p1 = 0.01
+p2 = 0.075
+p3 = 0.155
+p4 = 0.3
+p5 = 0.52
+p6 = 1
+streak_int = 0.4
+light = SubResource("light_03")
 metadata/_custom_type_script = "uid://c6o4hvxauaari"

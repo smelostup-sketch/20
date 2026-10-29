@@ -12,18 +12,18 @@ moon_light_color = Color(0.753, 0.784, 0.91, 1)
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "10 · K6-база под реф ref5.png (Q7.33 переделка, ×0.938; звёзды/луна вручную)"
+preset_name = "10 · День: грозовая башня-облако (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
 sun_elevation = 15.0
 moon_elevation = 65.0
 moon_azimuth = 200.0
-col_glow = Color(0.855694, 0.510356, 0.37203, 1)
-col_horizon = Color(0.565251, 0.38439, 0.417204, 1)
-col_band = Color(0.359097, 0.294979, 0.449268, 1)
-col_band2 = Color(0.138062, 0.199116, 0.483648, 1)
-col_mid = Color(0.043821, 0.158242, 0.498305, 1)
-col_anti = Color(0.026807, 0.059074, 0.154285, 1)
-col_halo = Color(0.855694, 0.510356, 0.37203, 1)
+col_glow = Color(0.909804, 0.772549, 0.494118, 1)
+col_horizon = Color(0.827451, 0.666667, 0.400000, 1)
+col_band = Color(0.807843, 0.466667, 0.317647, 1)
+col_band2 = Color(0.337255, 0.564706, 0.658824, 1)
+col_mid = Color(0.266667, 0.403922, 0.501961, 1)
+col_anti = Color(0.129412, 0.231373, 0.337255, 1)
+col_halo = Color(1.456270, 0.715607, 0.215638, 1)
 p1 = 0.008
 p2 = 0.06
 p3 = 0.13

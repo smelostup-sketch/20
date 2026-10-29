@@ -6,31 +6,32 @@
 
 [sub_resource type="Resource" id="light_06"]
 script = ExtResource("3_light")
-key_color = Color(1, 0.851, 0.627, 1)
-key_energy = 2.0
+key_color = Color(1, 0.72, 0.5, 1)
+key_energy = 1.8
 moon_light_color = Color(0.753, 0.784, 0.91, 1)
+ambient_energy = 1.0
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "06 · K5 золотой час (Q7.33 перенос, ×0.785)"
+preset_name = "06 · Багровое небо над пагодой (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
-sun_elevation = 4.0
-moon_elevation = 45.0
-moon_azimuth = 270.0
-col_glow = Color(1.134342, 0.612103, 0.319088, 1)
-col_horizon = Color(0.954328, 0.54914, 0.501776, 1)
-col_band = Color(0.508514, 0.393211, 0.954208, 1)
-col_band2 = Color(0.320035, 0.327288, 1.145487, 1)
-col_mid = Color(0.248838, 0.302386, 1.217741, 1)
-col_anti = Color(0.113323, 0.125264, 0.487155, 1)
-col_halo = Color(1.134342, 0.612103, 0.319088, 1)
-p2 = 0.072
-p3 = 0.15
-p4 = 0.29
-p5 = 0.505
-sun_disc_color = Color(1, 0.941, 0.784, 1)
-sun_size_deg = 2.2
-sun_core_int = 6.0
-streak_int = 0.3
+sun_elevation = 1
+sun_azimuth = 180.0
+moon_elevation = 50.0
+moon_azimuth = 0.0
+col_glow = Color(0.909804, 0.772549, 0.494118, 1)
+col_horizon = Color(0.741176, 0.345098, 0.188235, 1)
+col_band = Color(0.596078, 0.243137, 0.215686, 1)
+col_band2 = Color(0.447059, 0.200000, 0.211765, 1)
+col_mid = Color(0.254902, 0.137255, 0.160784, 1)
+col_anti = Color(0.098039, 0.109804, 0.145098, 1)
+col_halo = Color(1.456270, 0.715607, 0.215638, 1)
+p1 = 0.01
+p2 = 0.075
+p3 = 0.155
+p4 = 0.3
+p5 = 0.52
+p6 = 1
+streak_int = 0.2
 light = SubResource("light_06")
 metadata/_custom_type_script = "uid://c6o4hvxauaari"

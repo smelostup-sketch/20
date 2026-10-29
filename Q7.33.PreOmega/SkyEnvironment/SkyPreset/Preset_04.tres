@@ -12,18 +12,18 @@ moon_light_color = Color(0.847, 0.878, 0.961, 1)
 
 [resource]
 script = ExtResource("2_script")
-preset_name = "04 · K1 астро-сумерки (Q7.33 перенос, ×0.75; H: band x1.25 монотонность)"
+preset_name = "04 · Аниме-пейзаж с цианом (Q7.34, палитра заказчика)"
 preview = ExtResource("1_prev")
 sun_elevation = -13.5
 moon_elevation = 40.0
 moon_azimuth = 205.0
-col_glow = Color(1.270072, 0.270866, 1.270072, 1)
-col_horizon = Color(1.125148, 0.194222, 1.158752, 1)
-col_band = Color(0.231044, 0.114753, 1.223043, 1)
-col_band2 = Color(0.000494, 0.184835, 0.95274, 1)
-col_mid = Color(0.01845, 0.109658, 1.5, 1)
-col_anti = Color(0.000494, 0.001699, 0.030323, 1)
-col_halo = Color(1.270072, 0.270866, 1.270072, 1)
+col_glow = Color(0.717647, 0.392157, 0.800000, 1)
+col_horizon = Color(0.423529, 0.286275, 0.698039, 1)
+col_band = Color(0.113725, 0.513725, 0.647059, 1)
+col_band2 = Color(0.094118, 0.360784, 0.525490, 1)
+col_mid = Color(0.074510, 0.223529, 0.431373, 1)
+col_anti = Color(0.015686, 0.019608, 0.066667, 1)
+col_halo = Color(0.559866, 0.134320, 0.813648, 1)
 p1 = 0.02
 p2 = 0.12
 p3 = 0.24

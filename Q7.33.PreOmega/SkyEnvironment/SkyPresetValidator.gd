@@ -22,37 +22,20 @@ static func win_f(lo: float, hi: float, x: float, sharp: float) -> float:
 	return sstep_f(hi - w, hi, x)
 
 
-## Зеркало ramp_u: шесть стопов + положения + sharp. Возвращает ЛИНЕЙНЫЙ цвет.
+## Зеркало ramp_u: шесть стопов + положения + sharp.
+## Q7.34 (COLORS5): стопы = ДИСПЛЕЙНЫЕ ДАННЫЕ (palette hex/255, encoded sRGB);
+## mix идёт в кодированном пространстве — как в шейдере. Байт полосы/неба =
+## round(значение × 255) БЕЗ каких-либо конверсий: filmic-зеркало отсюда ушло
+## вместе с цепью A старой схемы (конвертеры теперь живут в шейдере:
+## disp2scene/scene2disp, и в q_tools/palette_tool.py для CPU-сверок).
 static func ramp_color(stops: Array, p: Array, sharp: float, u: float) -> Color:
 	var c: Color = stops[0]
 	c = c.lerp(stops[1], win_f(p[0], p[1], u, sharp))
 	c = c.lerp(stops[2], win_f(p[1], p[2], u, sharp))
 	c = c.lerp(stops[3], win_f(p[2], p[3], u, sharp))
 	c = c.lerp(stops[4], win_f(p[3], p[4], u, sharp))
-	c = c.lerp(stops[5], win_f(p[4], maxf(p[5], 1.0), u, sharp))
+	c = c.lerp(stops[5], win_f(p[4], p[5], u, sharp))
 	return c
-
-
-# Константы filmic() — точный порт const FA..FN из SkyEnvironment.gdshader
-# (строки 168–174). На уровне класса: GDScript не поддерживает объявление
-# нескольких переменных через запятую в одной строке.
-const FA := 0.88
-const FB := 0.60
-const FCB := 0.06
-const FDE := 0.002
-const FDF := 0.06
-const FEF := 0.03333333
-const FN := 0.7285913529
-
-
-## Зеркало filmic() шейдера (display-преобразование для полосы и таблицы).
-static func filmic_f(x: float) -> float:
-	var c := maxf(x, 0.0)
-	return (((c * (FA * c + FCB) + FDE) / (c * (FA * c + FB) + FDF)) - FEF) / FN
-
-
-static func filmic3_c(v: Color) -> Color:
-	return Color(filmic_f(v.r), filmic_f(v.g), filmic_f(v.b), 1.0)
 
 
 static func lum(c: Color) -> float:
@@ -102,7 +85,11 @@ static func validate(p: SkyPreset) -> Dictionary:
 			viol += 1
 		prev = cur
 	if viol > 0:
-		errors.append("монотонность яркости: %d нарушений убывания L(u) на [p1, 1]" % viol)
+		# Q7.34 (S4C): палитры заказчика допускают немонотонную яркость (художественные
+		# слои: напр. у пресета 04 циановый слой ярче горизонта). Шейдер интерполирует
+		# любой порядок стопов, правило было для физического купола — понижено до
+		# предупреждения: данные заказчика приоритетнее физической монотонности.
+		warnings.append("монотонность яркости: %d нарушений убывания L(u) на [p1, 1] (разрешено: палитра заказчика, арт-слой)" % viol)
 
 	# 4. light не задан
 	if p.light == null:
@@ -117,11 +104,12 @@ static func validate(p: SkyPreset) -> Dictionary:
 		if (pos[i + 1] - pos[i]) * p.sharp < 0.02:
 			warnings.append("окно p%d→p%d шириной %.3f — переход почти скачком" % [i + 1, i + 2, (pos[i + 1] - pos[i]) * p.sharp])
 
-	# 7. Пересвет: любой канал цвета > 2.5 — предупреждение
+	# 7. Q7.34 (COLORS5): стопы = display-данные (hex/255), канал вне [0,1] —
+	#    признак старого линейного формата (до COLORS5 col_* были linear HDR).
 	for i in range(6):
 		var c: Color = stops[i]
-		if maxf(c.r, maxf(c.g, c.b)) > 2.5:
-			warnings.append("пересвет: стоп %s, канал > 2.5" % names[i])
+		if maxf(c.r, maxf(c.g, c.b)) > 1.0 + 1e-6:
+			warnings.append("стоп %s: канал > 1 — данные должны быть display hex/255 (COLORS5); похоже на старый линейный формат" % names[i])
 
 	# 8. солнце под горизонтом при включённом — предупреждение (решения 2 и 16)
 	if p.sun_enabled and p.sun_elevation < 0.0:

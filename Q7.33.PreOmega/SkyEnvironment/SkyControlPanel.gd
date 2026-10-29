@@ -33,6 +33,8 @@ var _pct_spins: Array[SpinBox] = []
 var _table_labels: Array[Label] = []
 var _locked: Array[bool] = [false, false, false, false, false, false]
 var _sharp_slider: HSlider
+var _breathe_slider: HSlider	# Q7.34 (COLORS6): «дыхание» купола
+var _squeeze_slider: HSlider	# Q7.34 (COLORS7): компенсация складки у горизонта
 var _arc_slider: HSlider
 var _scale_slider: HSlider
 var _scale_base: Array = []
@@ -48,6 +50,7 @@ var _src_pickers: Dictionary = {}
 # вкладка «Купол»
 var _dither_slider: HSlider
 var _stars_slider: HSlider
+var _tonemap_check: CheckBox	# Q7.34 (COLORS5): Filmic/Linear
 # вкладка «Свет сцены»
 var _key_col: ColorPickerButton
 var _key_en: HSlider
@@ -84,10 +87,11 @@ class RampStrip extends Control:
 
 	func _nearest_marker(x: float) -> int:
 		var pos: Array = host.strip_positions_pct()
+		var g: float = host.strip_gamma()	# COLORS6: маркеры на эффективных границах
 		var best := -1
 		var bd := 9.0
 		for i in range(pos.size()):
-			var d := absf(float(pos[i]) / 100.0 * size.x - x)
+			var d := absf(pow(float(pos[i]) / 100.0, 1.0 / g) * size.x - x)
 			if d < bd:
 				bd = d
 				best = i
@@ -99,17 +103,21 @@ class RampStrip extends Control:
 		if w < 2 or h < 2 or host == null:
 			return
 		var data: Dictionary = host.strip_data()
+		var g: float = host.strip_gamma()	# COLORS6: варп «дыхания» (1.0 = выкл)
 		var img := Image.create(w, h, false, Image.FORMAT_RGB8)
 		for px in range(w):
-			var u := float(px) / float(w - 1)
-			var lin: Color = SkyPresetValidator.ramp_color(data["stops"], data["pos"], data["sharp"], u)
-			var c: Color = SkyPresetValidator.filmic3_c(lin)	# display, как в небе
+			# COLORS6: полоса рисует ФИЗИЧЕСКУЮ шкалу u, цвет = ramp(u^γ) — как в небе.
+			var u := pow(float(px) / float(w - 1), g)
+			# Q7.34 (COLORS5): стопы = display-данные (hex/255), mix в кодированном
+			# пространстве — результат и есть байт полосы/неба, конверсий нет.
+			var c: Color = SkyPresetValidator.ramp_color(data["stops"], data["pos"], data["sharp"], u)
 			for py in range(h):
 				img.set_pixel(px, py, Color(c.r, c.g, c.b))
 		draw_texture(ImageTexture.create_from_image(img), Vector2.ZERO)
 		var pos: Array = host.strip_positions_pct()
 		for i in range(pos.size()):
-			var x := float(pos[i]) / 100.0 * size.x
+			# COLORS6: маркеры — на ЭФФЕКТИВНЫХ границах долей (p^(1/γ)), там же, где в небе
+			var x := pow(float(pos[i]) / 100.0, 1.0 / g) * size.x
 			draw_line(Vector2(x, 0.0), Vector2(x, size.y), Color(1.0, 1.0, 1.0, 0.85), 1.0)
 			if host.is_locked(i):
 				draw_rect(Rect2(x - 3.0, size.y - 8.0, 6.0, 6.0), Color(1.0, 0.8, 0.2))
@@ -156,6 +164,21 @@ func _add_slider(parent: VBoxContainer, title: String, minimum: float, maximum: 
 
 
 # ================= построение UI =================
+## Q7.34 (S9, баг 3.3): каждая вкладка — ScrollContainer: при высоте окна < ~760 px
+## низ вкладок был НЕДОСТУПЕН (скролла не было вообще). Горизонтальный скролл выключен,
+## вертикальный — автоматический по высоте содержимого. Название вкладки = имя узла.
+func _tab_box(title: String) -> VBoxContainer:
+	var sc := ScrollContainer.new()
+	sc.name = title
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_tabs.add_child(sc)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(box)
+	return box
+
+
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	var panel_w := minf(380.0, vp.x - 32.0)
@@ -181,9 +204,7 @@ func _build_ui() -> void:
 
 
 func _build_gradient_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Градиент"
-	_tabs.add_child(box)
+	var box := _tab_box("Градиент")
 
 	_strip = RampStrip.new()
 	_strip.host = self
@@ -209,21 +230,26 @@ func _build_gradient_tab() -> void:
 		var row := HBoxContainer.new()
 		box.add_child(row)
 		var lbl := Label.new()
-		lbl.text = STOP_LABELS[i]
-		lbl.custom_minimum_size = Vector2(120.0, 0.0)
+		lbl.text = STOP_LABELS[i] + ", доля %"
+		lbl.custom_minimum_size = Vector2(150.0, 0.0)
 		row.add_child(lbl)
 		var spin := SpinBox.new()
-		spin.min_value = 0.0
+		spin.min_value = 0.0	# отображение честное (доля может быть 0); минимум MIN_GAP_PCT обеспечивает _apply_share
 		spin.max_value = 100.0
 		spin.step = 0.1
 		spin.suffix = "%"
+		spin.update_on_text_changed = true	# живой отклик при вводе (Q7.34: фикс «ползунки не работают»)
+		spin.custom_minimum_size = Vector2(96.0, 0.0)	# не сжиматься в ScrollContainer
+		spin.tooltip_text = "Доля цвета в градиенте, %: сумма всех шести = 100. При правке незаблокированной доли остальные незаблокированные перераспределяются ПРОПОРЦИОНАЛЬНО своим текущим долям; заблокированные (замочек) стоят."
 		spin.value_changed.connect(_on_pct_spin.bind(i))
 		_pct_spins.append(spin)
 		row.add_child(spin)
 		var lock := CheckButton.new()
 		lock.text = "замок"
+		lock.tooltip_text = "зафиксировать долю цвета"
 		lock.toggled.connect(func(on: bool, idx: int = i) -> void:
 			_locked[idx] = on
+			_pct_spins[idx].editable = not on
 			_refresh_strip())
 		_lock_checks.append(lock)
 		row.add_child(lock)
@@ -240,6 +266,13 @@ func _build_gradient_tab() -> void:
 		func(v: float) -> void: _set_param("sk_sharp", v))
 	_arc_slider = _add_slider(box, "Эллипс sk_arc_stretch", 1.0, 4.0, 2.4, 0.05,
 		func(v: float) -> void: _set_param("sk_arc_stretch", v))
+	# Q7.34 (COLORS6, S15): «дыхание» купола — варп шкалы u от высоты солнца.
+	_breathe_slider = _add_slider(box, "Дыхание купола sk_breathe (0 = выкл; солярные кольца дышат с высотой солнца)", 0.0, 0.9, 0.0, 0.01,
+		func(v: float) -> void: _set_param("sk_breathe", v))
+	# Q7.34 (COLORS7, S17): компенсация складки у горизонта — антисолярные окна шкалы
+	# сжимаются в пригоризонтной зоне пропорционально стретчу эллипса (способ 1).
+	_squeeze_slider = _add_slider(box, "Компенсация складки у горизонта sk_squeeze (0 = выкл; антисолярные окна сжимаются у горизонта пропорционально эллипсу)", 0.0, 2.0, 0.0, 0.01,
+		func(v: float) -> void: _set_param("sk_squeeze", v))
 
 	var scale_row := HBoxContainer.new()
 	box.add_child(scale_row)
@@ -258,9 +291,7 @@ func _build_gradient_tab() -> void:
 
 
 func _build_source_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Источник"
-	_tabs.add_child(box)
+	var box := _tab_box("Источник")
 	_sun_az = _add_slider(box, "Солнце: азимут (°)", 0.0, 360.0, 180.0, 0.5, _on_sun_angles)
 	_sun_el = _add_slider(box, "Солнце: надир −90° / зенит +90°", -90.0, 90.0, 0.5, 0.5, _on_sun_angles)
 	_sun_on = CheckButton.new()
@@ -307,19 +338,23 @@ func _build_source_tab() -> void:
 
 
 func _build_dome_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Купол"
-	_tabs.add_child(box)
+	var box := _tab_box("Купол")
 	_dither_slider = _add_slider(box, "dither (0/1)", 0.0, 1.0, 1.0, 1.0,
 		func(v: float) -> void: _set_param("sk_dither", v))
 	_stars_slider = _add_slider(box, "Звёзды star_intensity", 0.0, 1.0, 0.0, 0.01,
 		func(v: float) -> void: _set_param("star_intensity", v))
+	# Q7.34 (COLORS5): переключатель тонмапа (заказчик: «сделай переключаемым
+	# линер\филмик»). Пишет uniform sk_tonemap И Environment.tonemap_mode парой —
+	# только так round-trip шейдера остаётся зеркалом движка.
+	_tonemap_check = CheckBox.new()
+	_tonemap_check.text = "Линейный тонмап (выкл = Filmic, цепь A)"
+	_tonemap_check.tooltip_text = "Filmic: HDR-сжатие (солнце/ореолы мягче), tonemap_mode=2. Linear: сырой градиент, tonemap_mode=0. Байты палитры на стопах одинаковы в обоих режимах; сохраняется в пресет (tonemap_linear)."
+	_tonemap_check.toggled.connect(_on_tonemap_toggled)
+	box.add_child(_tonemap_check)
 
 
 func _build_light_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Свет сцены"
-	_tabs.add_child(box)
+	var box := _tab_box("Свет сцены")
 	_key_col = ColorPickerButton.new()
 	_key_col.custom_minimum_size = Vector2(80.0, 26.0)
 	_key_col.tooltip_text = "SunLight.color"
@@ -349,9 +384,7 @@ func _build_light_tab() -> void:
 
 
 func _build_presets_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Пресеты"
-	_tabs.add_child(box)
+	var box := _tab_box("Пресеты")
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 6)
@@ -393,9 +426,7 @@ func _build_presets_tab() -> void:
 
 
 func _build_debug_tab() -> void:
-	var box := VBoxContainer.new()
-	box.name = "Отладка"
-	_tabs.add_child(box)
+	var box := _tab_box("Отладка")
 	var row := HBoxContainer.new()
 	box.add_child(row)
 	var lbl := Label.new()
@@ -451,9 +482,11 @@ func _sync_pct_spins() -> void:
 	if _syncing:
 		return
 	_syncing = true
-	var pos := strip_positions_pct()
+	var s := _shares_from_pos()
 	for i in range(6):
-		_pct_spins[i].value = pos[i]
+		if _pct_spins[i].get_line_edit().has_focus():
+			continue	# не воюем с вводом: активный спин не перезаписываем
+		_pct_spins[i].set_value_no_signal(float(s[i]))
 	_syncing = false
 
 
@@ -461,11 +494,15 @@ func _refresh_table() -> void:
 	var data := strip_data()
 	var pos: Array = data["pos"]
 	var stops: Array = data["stops"]
+	var sh := _shares_from_pos()
 	for i in range(6):
 		var u := float(pos[i]) / 100.0
 		var deg := u * 180.0
 		var wdeg := (float(pos[i + 1]) - float(pos[i])) * float(data["sharp"]) * 180.0 if i < 5 else -1.0
-		var txt := "%s: u=%.3f  %.1f%%  %.1f°" % [STOP_LABELS[i], u, float(pos[i]), deg]
+		var txt := "%s: доля %.1f%%  маркер u=%.3f (%.1f°)%s" % [STOP_LABELS[i], float(sh[i]), u, deg, "  🔒" if _locked[i] else ""]
+		var g := strip_gamma()
+		if not is_equal_approx(g, 1.0):
+			txt += "  эфф.u=%.3f" % pow(u, 1.0 / g)	# COLORS6: где граница реально на куполе
 		if i < 5:
 			txt += "  окно %.1f°" % wdeg
 		_table_labels[i].text = txt
@@ -478,45 +515,112 @@ func _refresh_table() -> void:
 		_table_labels[i].add_theme_color_override("font_color", Color(1.0, 0.25, 0.25) if bad else Color(0.85, 0.85, 0.85))
 
 
-# ================= алгоритм маркеров (п. 13.4) =================
-func _on_strip_drag(idx: int, q: float) -> void:
+# ============ алгоритм ДОЛЕЙ (Q7.34 COLORS4, логика заказчика 29.10) ============
+# Шесть цветов рампы имеют ДОЛИ (s0..s5, сумма = 100%). Доля = ширина зоны цвета
+# на шкале u: s0 = p1, s_i = p_{i+1} − p_i (i=1..4), s5 = 100 − p6 (плоский хвост
+# антиследа). Маркер p_{i+1} на полосе = правая граница доли цвета i.
+# Правила (пример заказчика, 3 цвета): доли 10/70/20; замок на 3-м; правка 1-го
+# на 50% ⇒ 2-й автоматически 30%; замкнуты 1-й и 2-й ⇒ 3-й не изменить.
+# При правке одной незаблокированной доли остальные НЕЗАБЛОКИРОВАННЫЕ меняют
+# размер, сохраняя СООТНОШЕНИЕ между собой; заблокированные стоят.
+func _shares_from_pos() -> Array:
 	var pos := strip_positions_pct()
-	# 1. q зажимается между ближайшими ЗАЛОЧЕННЫМИ соседями (или краями шкалы)
-	var lo := 0.0
-	var hi := 100.0
-	for i in range(idx - 1, -1, -1):
-		if _locked[i]:
-			lo = float(pos[i])
-			break
-	for i in range(idx + 1, 6):
-		if _locked[i]:
-			hi = float(pos[i])
-			break
-	q = clampf(q, lo + MIN_GAP_PCT, hi - MIN_GAP_PCT)
-	var old := float(pos[idx])
-	# 2-3. свободные стопы делятся на две группы (до ближайших замков):
-	# каждая сохраняет ПРЕЖНИЕ ПРОПОРЦИИ и укладывается в свой интервал:
-	# LEFT → (lo, q), RIGHT → (q, hi)
-	for i in range(idx - 1, -1, -1):
-		if _locked[i]:
-			break
-		if old - lo > 1e-6:
-			pos[i] = lo + (float(pos[i]) - lo) * (q - lo) / (old - lo)
-	for i in range(idx + 1, 6):
-		if _locked[i]:
-			break
-		if hi - old > 1e-6:
-			pos[i] = q + (float(pos[i]) - old) * (hi - q) / (hi - old)
-	pos[idx] = q
-	_enforce_gaps(pos)
+	var s: Array = [float(pos[0])]
+	for i in range(1, 5):
+		s.append(float(pos[i]) - float(pos[i - 1]))
+	s.append(100.0 - float(pos[5]))
+	var tot := 0.0
+	var neg := false
+	for i in range(6):
+		if float(s[i]) < 0.0:
+			neg = true
+		tot += maxf(float(s[i]), 0.0)
+	if neg or tot < 99.9 or tot > 100.1:
+		if tot > 1e-6:
+			for i in range(6):
+				s[i] = maxf(float(s[i]), 0.0) * 100.0 / tot
+		else:
+			for i in range(6):
+				s[i] = 100.0 / 6.0
+	return s
+
+
+func _pos_from_shares(s: Array) -> Array:
+	var pos: Array = []
+	var acc := 0.0
+	for i in range(5):
+		acc += float(s[i])
+		pos.append(acc)
+	pos.append(100.0 - float(s[5]))
+	return pos
+
+
+func _apply_share(idx: int, v: float) -> void:
+	if _locked[idx]:
+		_refresh_strip()
+		return
+	var s := _shares_from_pos()
+	var locked_sum := 0.0
+	var free_idx: Array[int] = []
+	var free_sum := 0.0
+	for j in range(6):
+		if j == idx:
+			continue
+		if _locked[j]:
+			locked_sum += float(s[j])
+		else:
+			free_idx.append(j)
+			free_sum += float(s[j])
+	# коридор редактируемой доли: залоченные стоят; у остальных незаблокированных —
+	# минимум MIN_GAP_PCT. Если ВСЕ остальные замкнуты, доля однозначна —
+	# «выше/ниже не поднять» (пример заказчика, 3 цвета).
+	var vmin := MIN_GAP_PCT
+	var vmax := 100.0 - locked_sum - MIN_GAP_PCT * float(free_idx.size())
+	if free_idx.is_empty():
+		vmin = clampf(100.0 - locked_sum, 0.0, 100.0)
+		vmax = vmin
+	else:
+		vmax = maxf(vmax, vmin)
+	v = clampf(v, vmin, vmax)
+	s[idx] = v
+	var rest := 100.0 - locked_sum - v
+	if free_idx.size() > 0:
+		if free_sum > 1e-6:
+			for j in free_idx:
+				s[j] = float(s[j]) * rest / free_sum	# ПРОПОРЦИОНАЛЬНО текущим долям
+		else:
+			for j in free_idx:
+				s[j] = rest / float(free_idx.size())
+	var pos := _pos_from_shares(s)
+	_enforce_gaps(pos)	# страховка: маркеры не переходят друг через друга (MIN_GAP)
 	_write_positions(pos)
+	if not is_equal_approx(float(_pct_spins[idx].value), v):
+		_pct_spins[idx].set_value_no_signal(v)	# если клампнули — показать честное значение
+
+
+# Тяга маркера на полосе = правка доли цвета idx (маркер p_{idx+1} — её граница).
+func _on_strip_drag(idx: int, q: float) -> void:
+	if _locked[idx]:
+		_refresh_strip()
+		return
+	# COLORS6: полоса тянет ФИЗИЧЕСКИЙ процент; доли живут в базовой шкале —
+	# обратный варп q^γ (γ из sk_breathe и высоты солнца; γ=1 когда выкл).
+	q = pow(clampf(q / 100.0, 0.0, 1.0), strip_gamma()) * 100.0
+	var pos := strip_positions_pct()
+	var v: float
+	if idx == 5:
+		v = 100.0 - q	# p6 = 100 − s5 (хвост антиследа)
+	elif idx == 0:
+		v = q
+	else:
+		v = q - float(pos[idx - 1])
+	_apply_share(idx, v)
 
 
 func _on_pct_spin(v: float, idx: int) -> void:
 	if _syncing:
 		return
-	_on_strip_drag(idx, v)
-	_refresh_strip()
+	_apply_share(idx, v)
 
 
 func _enforce_gaps(pos: Array) -> void:
@@ -565,7 +669,7 @@ func _on_scale_changed(k: float) -> void:
 func _set_param(uni: String, value: Variant) -> void:
 	if controller:
 		controller.set_shader_param(uni, value)
-	if uni in P_UNIS or uni in COL_UNIS or uni == "sk_sharp":
+	if uni in P_UNIS or uni in COL_UNIS or uni == "sk_sharp" or uni == "sk_tonemap" or uni == "sk_breathe" or uni == "sk_squeeze" or uni == "sk_arc_stretch":
 		_refresh_strip()
 
 
@@ -581,13 +685,52 @@ func _light_ctrl() -> SkyLightController:
 	return null
 
 
+## Q7.34 (COLORS6 v2): текущая γ варпа шкалы — ТА ЖЕ формула, что в ramp_u шейдера
+## (γ = (1+x)/(1−0.5x), x = sk_breathe·sin(elev); v1-закон, усиленный ×1.5 по сдвигу
+## границ): полоса и маркеры WYSIWYG с куполом.
+func breathe_gamma() -> float:
+	if controller == null:
+		return 1.0
+	var x := float(_get_param("sk_breathe")) * sin(deg_to_rad(controller.sun_elevation))
+	return (1.0 + x) / (1.0 - 0.5 * x)
+
+
+## Q7.34 (COLORS7): экспонента компенсации складки для ГОРИЗОНТНОГО среза полосы
+## (h = 1): γ_arc = 1 + sk_squeeze·(S−1), где S — ТА ЖЕ формула стретча, что в
+## u_ellip/ramp_u шейдера (smoothstep-уход к зениту солнца включён).
+func squeeze_gamma() -> float:
+	if controller == null:
+		return 1.0
+	var s := absf(sin(deg_to_rad(controller.sun_elevation)))
+	var S := lerpf(maxf(float(_get_param("sk_arc_stretch")), 1.0), 1.0, smoothstep(0.85, 0.99, s))	# GDScript 4.3+: lerpf (float), не Variant-lerp и не шейдерный mix
+	return 1.0 + float(_get_param("sk_squeeze")) * (S - 1.0)
+
+
+## Q7.34 (COLORS7): итоговая экспонента варпа горизонтного среза полосы:
+## дыхание (COLORS6 v2) × компенсация складки (COLORS7). Полоса/маркеры/drag/таблица.
+func strip_gamma() -> float:
+	return breathe_gamma() * squeeze_gamma()
+
+
 func _on_stop_color(c: Color, idx: int) -> void:
 	_set_param(COL_UNIS[idx], c)
+
+
+## Q7.34 (COLORS5): переключатель Filmic/Linear — uniform + Environment парой.
+func _on_tonemap_toggled(on: bool) -> void:
+	if _syncing:
+		return
+	_set_param("sk_tonemap", 1 if on else 0)
+	var lc := _light_ctrl()
+	if lc != null:
+		lc.set_tonemap_linear(on)
+	_refresh_strip()
 
 
 func _on_sun_angles(_v: float) -> void:
 	if controller:
 		controller.set_sun_angles(_sun_az.value, _sun_el.value)
+	_refresh_strip()	# COLORS6: γ «дыхания» зависит от высоты солнца — полоса маркеров едет с ним
 
 
 func _on_moon_angles(_v: float) -> void:
@@ -627,8 +770,11 @@ func _collect_current() -> SkyPreset:
 		p.set(P_UNIS[i].replace("sk_", ""), float(_get_param(P_UNIS[i])))
 	p.sharp = float(_get_param("sk_sharp"))
 	p.arc_stretch = float(_get_param("sk_arc_stretch"))
+	p.breathe = float(_get_param("sk_breathe"))	# COLORS6
+	p.squeeze = float(_get_param("sk_squeeze"))	# COLORS7
 	p.dither = float(_get_param("sk_dither")) > 0.5
 	p.star_intensity = float(_get_param("star_intensity"))
+	p.tonemap_linear = int(_get_param("sk_tonemap")) == 1	# Q7.34 (COLORS5)
 	p.sun_disc_color = Color(_get_param("sun_disk_color"))
 	p.sun_size_deg = float(_get_param("sun_size_deg"))
 	p.sun_core_int = float(_get_param("sun_core_int"))
@@ -780,8 +926,11 @@ func _sync_ui() -> void:
 		_src_sliders[uni].set_value_no_signal(float(_get_param(uni)))
 	_sharp_slider.set_value_no_signal(float(_get_param("sk_sharp")))
 	_arc_slider.set_value_no_signal(float(_get_param("sk_arc_stretch")))
+	_breathe_slider.set_value_no_signal(float(_get_param("sk_breathe")))
+	_squeeze_slider.set_value_no_signal(float(_get_param("sk_squeeze")))
 	_dither_slider.set_value_no_signal(float(_get_param("sk_dither")))
 	_stars_slider.set_value_no_signal(float(_get_param("star_intensity")))
+	_tonemap_check.set_pressed_no_signal(int(_get_param("sk_tonemap")) == 1)
 	_debug_mode_spin.value = float(_get_param("sky_debug_mode"))
 	_sun_az.set_value_no_signal(controller.sun_azimuth)
 	_sun_el.set_value_no_signal(controller.sun_elevation)

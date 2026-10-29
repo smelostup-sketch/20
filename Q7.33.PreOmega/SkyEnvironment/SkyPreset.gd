@@ -20,13 +20,17 @@ class_name SkyPreset
 @export var moon_enabled: bool = true
 
 # --- рампа: 6 стопов, всё данные ---
-@export var col_glow: Color = Color(2.0, 0.5, 0.2)		# стоп 0 — ядро зари
-@export var col_horizon: Color = Color(1.4, 0.4, 0.25)	# стоп 1
-@export var col_band: Color = Color(0.6, 0.35, 0.7)		# стоп 2
-@export var col_band2: Color = Color(0.3, 0.3, 0.8)		# стоп 3
-@export var col_mid: Color = Color(0.12, 0.18, 0.4)		# стоп 4
-@export var col_anti: Color = Color(0.02, 0.03, 0.09)	# стоп 5 — антисоляр
-@export var col_halo: Color = Color(2.0, 0.5, 0.2)		# ореол источника
+# Q7.34 (COLORS5): col_* (кроме col_halo) — ДИСПЛЕЙНЫЕ ДАННЫЕ: palette hex/255,
+# encoded sRGB 0..1. Шейдер смешивает их в кодированном пространстве (плавный
+# градиент) и декодирует один раз; байт экрана на стопе = hex побайтово в обоих
+# режимах тонмапа. col_halo — ЕДИНСТВЕННЫЙ linear-HDR цвет (может быть > 1).
+@export var col_glow: Color = Color(1.0, 0.7677, 0.5545)		# стоп 0 — ядро зари
+@export var col_horizon: Color = Color(0.9552, 0.7177, 0.6073)	# стоп 1
+@export var col_band: Color = Color(0.8067, 0.6868, 0.8379)		# стоп 2
+@export var col_band2: Color = Color(0.6506, 0.6506, 0.8635)		# стоп 3
+@export var col_mid: Color = Color(0.4389, 0.5299, 0.7177)		# стоп 4
+@export var col_anti: Color = Color(0.1586, 0.2036, 0.3794)	# стоп 5 — антисоляр
+@export var col_halo: Color = Color(2.0, 0.5, 0.2)		# ореол источника (linear HDR)
 @export_range(0.0, 1.0)   var p1: float = 0.010
 @export_range(0.0, 1.0)   var p2: float = 0.075
 @export_range(0.0, 1.0)   var p3: float = 0.155
@@ -35,10 +39,21 @@ class_name SkyPreset
 @export_range(0.0, 1.0)   var p6: float = 1.000
 @export_range(0.05, 1.0)  var sharp: float = 1.0
 @export_range(1.0, 4.0)   var arc_stretch: float = 2.4
+# Q7.34 (COLORS6, S15): «дыхание» купола — динамический варп шкалы u от высоты
+# солнца: γ = 1 + breathe·sin(elev). Выше горизонта солярные стопы раздуваются
+# за счёт дальних (антисоляр сжимается), ниже — обратно. 0 = выкл (побитово
+# статика). Диапазон до 0.9: гарантирует γ > 0 (pow определён на всей шкале).
+@export_range(0.0, 0.9)   var breathe: float = 0.0
+@export_range(0.0, 2.0)   var squeeze: float = 0.0	# Q7.34 (COLORS7): компенсация складки у горизонта
 
 # --- купол ---
 @export var dither: bool = true
 @export_range(0.0, 1.0) var star_intensity: float = 0.0
+# Q7.34 (COLORS5): переключаемый тонмап (заказчик: «сделай переключаемым
+# линер\филмик»). false = Filmic (цепь A, дефолт сцен), true = Linear.
+# Байт-точность палитры на стопах гарантирована шейдером в обоих режимах;
+# различается вид HDR-композита (солнце/ореол/звёзды) и характер градиента.
+@export var tonemap_linear: bool = false
 
 # --- источник ---
 @export var sun_disc_color: Color = Color(1.0, 0.953, 0.816)

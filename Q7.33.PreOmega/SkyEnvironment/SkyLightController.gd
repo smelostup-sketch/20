@@ -15,6 +15,28 @@ var moon_azimuth: float = 0.0
 var moon_elevation: float = 50.0
 
 
+func _ready() -> void:
+	# Q7.34 (S2): FREEZE цепи вывода. Round-trip неба и все палитры откалиброваны
+	# под Filmic (tonemap_mode = 2, цепи A: байт = srgb_encode(filmic(linear))).
+	# Q7.34 (COLORS5): Filmic и Linear — ОБА поддерживаются шейдером (sk_tonemap,
+	# disp2scene/scene2disp): байт-точность палитры на стопах держится в обоих.
+	# Режим переключается из пресета (tonemap_linear) / чекбокса панели. Любой
+	# ТРЕТИЙ режим (Reinhardt/ACES/AgX) по-прежнему ломает палитры — предупреждаем.
+	if environment != null:
+		var m: int = environment.tonemap_mode
+		if m != Environment.TONE_MAPPER_FILMIC and m != Environment.TONE_MAPPER_LINEAR:
+			push_warning("Q7.34: Environment.tonemap_mode = %d — поддерживаются только TONE_MAPPER_FILMIC (2) и TONE_MAPPER_LINEAR (0). Палитры неба съедут." % m)
+
+
+## Q7.34 (COLORS5): переключатель тонмапа Filmic/Linear. Пишется ВМЕСТЕ с
+## uniform sk_tonemap материала (SkyEnvironmentController.apply_palette) —
+## пара «движок ↔ шейдер» обязана совпадать, иначе round-trip разъезжается.
+func set_tonemap_linear(linear: bool) -> void:
+	if environment == null:
+		return
+	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR if linear else Environment.TONE_MAPPER_FILMIC
+
+
 ## ОДИН расчёт направления на источник — на шейдер и на свет (п. 12.2 ТЗ:
 ## «солнце на небе» и «откуда тени» не могут разъехаться). Статическая:
 ## SkyEnvironmentController вызывает её же.
