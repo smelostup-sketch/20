@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Q7.32_SKYprav_3.1/VeilSkyRig.gd" id="1_rig"]
+[ext_resource type="Sky" path="res://Q7.32_SKYprav_3.1/omega_clouds_test_sky.tres" id="2_sky"]
+[ext_resource type="Script" path="res://Q7.32_SKYprav_3.1/VeilSkyPanel.gd" id="3_panel"]
+
+[sub_resource type="Environment" id="Environment_sl_sky"]
+background_mode = 2
+sky = ExtResource("2_sky")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[node name="SkySLTest" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_sl_sky")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9962, -0.0872, 0, 0.0872, 0.9962, 0, 2, 8)
+far = 100000.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.4974, 0.4343, -0.751, 0, 0.8656, 0.5007, 0.8675, 0.249, -0.4306, 0, 8, 0)
+light_energy = 2.2
+shadow_enabled = true
+
+[node name="VeilSkyRig" type="Node" parent="."]
+script = ExtResource("1_rig")
+wind_speed = 1500.0
+
+[node name="VeilSkyPanel" type="Node" parent="."]
+script = ExtResource("3_panel")
