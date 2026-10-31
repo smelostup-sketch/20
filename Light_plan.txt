@@ -1,0 +1,672 @@
+Базовый архитектурный контракт атмосферного освещения Rengar Prototype Omega. 
+
+# 1. Архитектурный принцип
+
+> Солнце задаёт направление и цвет света, градиентное небо — цветовую среду, а облачная вуаль — объём и рассеивание.
+
+Из этого следуют три строгих правила:
+
+1. Sun — единственный активный источник атмосферного прямого освещения. Он задаёт направление, цвет и интенсивность.
+2. Sky Gradient — окружающая цветовая среда. Он предоставляет цветовую составляющую рассеянного света, но не создаёт дополнительный независимый источник.
+3. Cirrus Veil — визуальный объект, реагирующий на освещение. Он получает свет от Sun и цветовую заливку от Sky Gradient, учитывает собственную оптическую толщину и самозатенение.
+
+## Единая модель атмосферного освещения
+
+SUN
+
+Направление · Цвет · Интенсивность
+
+Direct Light
+
+Прямое освещение
+
+Sky Gradient
+
+Цветовая среда
+
+CIRRUS VEIL
+
+Плотность · Оптическая толщина · Самозатенение · Рассеивание
+
+Итоговый цвет вуали
+
+Без собственного свечения
+
+## 2. Строгие ограничения: никаких дополнительных источников
+
+Это нужно прямо записать в архитектурную документацию.
+
+Запрещено в атмосферной модели
+
+- Самостоятельное свечение земли или горизонта.
+- Эмиссия облачной вуали.
+- Захардкоженные дополнительные источники света.
+- Искусственная подсветка облаков, не связанная с Sun.
+- Независимые цветовые поправки, имитирующие дополнительное освещение.
+- Дополнительное освещение, которое включается только ради красивого результата, минуя общую модель.
+
+Исключение — Moon. Луна будет отдельным согласованным источником, но её интеграция пока не входит в реализацию. Нельзя заранее добавлять фиктивное лунное освещение или компенсировать его отсутствие другими источниками.
+
+Важное уточнение: цветовая заливка от неба не считается вторым источником. Это окружающая составляющая освещения, получаемая из Sky Gradient. Она не должна превращаться в самостоятельную эмиссию.
+
+# 3. Дорожная карта
+
+Я предлагаю пять этапов. Каждый этап должен давать проверяемый результат и не ломать уже работающие системы.
+
+01
+
+Общий контракт освещения
+
+Создать общий тип данных `AtmosphereLightingState` и ресурс настроек `AtmosphereLightingProfile`.
+
+Зафиксировать:
+
+- направление Sun;
+- цвет и интенсивность Sun;
+- три цветовые палитры вуали;
+- параметры окружающей цветовой заливки;
+- угловые границы переходов между палитрами.
+
+Результат: единый источник параметров.
+
+02
+
+AtmosphereLightingComponent
+
+Компонент-поставщик параметров. Получает направление, цвет и интенсивность от существующего `DirectionalLight3D`, собирает состояние и публикует его через сигнал.
+
+Он не рисует небо, не управляет облаками и не создаёт источники света.
+
+Результат: единый контракт передачи данных.
+
+03
+
+Интеграция Sky Gradient и Sun
+
+Существующий градиент получает согласованное направление солнечного источника. Его цветовые параметры становятся основой окружающей цветовой заливки.
+
+Визуальный диск солнца использует тот же источник направления и цвета, а не отдельные независимые значения.
+
+Результат: единая визуальная согласованность.
+
+04
+
+Интеграция Cirrus Veil
+
+Вуаль получает:
+
+- прямой свет Sun;
+- цветовую заливку Sky Gradient;
+- три палитры по угловой близости к солнцу;
+- собственную оптическую толщину;
+- необязательное самозатенение.
+
+Важно: угловая палитра влияет на наблюдаемый цвет облаков, но не подменяет физическую плотность или интенсивность света.
+
+Результат: объёмная облачность с согласованным освещением.
+
+05
+
+Валидация и оптимизация
+
+Проверить солнечное направление, переходы палитр, прозрачность, оптическую толщину, самозатенение и отсутствие несанкционированной эмиссии.
+
+Отдельно измерить стоимость блока самозатенения на целевом оборудовании.
+
+Результат: принятая и задокументированная модель.
+
+# 4. Core Scripts
+
+Ниже — начальный каркас. Он не меняет существующие контракты `Player3d`, `CombatComponent` и других игровых компонентов. Это отдельная подсистема атмосферы.
+
+Я предлагаю разделить её на четыре ответственности:
+
+| Скрипт                                | Ответственность                         |
+| ------------------------------------- | --------------------------------------- |
+| `AtmosphereLightingProfile.gd`        | Настройки и палитры                     |
+| `AtmosphereLightingState.gd`          | Контейнер актуальных данных             |
+| `AtmosphereLightingComponent.gd`      | Получение и публикация параметров Sun   |
+| `AtmosphereShaderBindingComponent.gd` | Передача параметров конкретному шейдеру |
+
+## 4.1. AtmosphereLightingProfile.gd
+
+`extends Resource`
+
+Создай файл в `SkyEnvironment/Scripts/AtmosphereLightingProfile.gd`.
+
+```
+
+class_name AtmosphereLightingProfile
+extends Resource
+
+## Три цветовые зоны наблюдаемой вуали.
+@export_group("Veil Angular Palette")
+
+@export var anti_solar_color: Color = Color(0.42, 0.48, 0.68)
+@export var transition_color: Color = Color(0.78, 0.76, 0.82)
+@export var solar_color: Color = Color(1.0, 0.83, 0.65)
+
+## mu = dot(view_direction, sun_direction).
+## Низкое значение соответствует противосолнечному направлению.
+@export_range(-1.0, 1.0, 0.01)
+var anti_solar_mu: float = -0.35
+
+@export_range(-1.0, 1.0, 0.01)
+var solar_mu: float = 0.75
+
+@export_range(0.05, 0.95, 0.01)
+var transition_position: float = 0.5
+
+
+## Прямой свет.
+@export_group("Direct Lighting")
+
+@export_range(0.0, 5.0, 0.01)
+var direct_multiplier: float = 1.0
+
+
+## Окружающая цветовая среда.
+## Значения должны соответствовать цветовым параметрам Sky Gradient.
+@export_group("Sky Ambient")
+
+@export var ambient_zenith_color: Color = Color(0.12, 0.19, 0.38)
+@export var ambient_horizon_color: Color = Color(0.38, 0.40, 0.48)
+
+@export_range(0.0, 2.0, 0.01)
+var ambient_strength: float = 1.0
+
+```
+
+Три цвета — это не три источника света. Это три цветовых состояния одного и того же наблюдаемого облачного слоя.
+
+## 4.2. AtmosphereLightingState.gd
+
+`extends RefCounted`
+
+Файл `SkyEnvironment/Scripts/AtmosphereLightingState.gd`.
+
+```
+
+class_name AtmosphereLightingState
+extends RefCounted
+
+## Направление ИЗ сцены К источнику света.
+var sun_direction: Vector3 = Vector3.UP
+
+var sun_color: Color = Color.WHITE
+var sun_energy: float = 1.0
+
+var anti_solar_color: Color
+var transition_color: Color
+var solar_color: Color
+
+var anti_solar_mu: float
+var solar_mu: float
+var transition_position: float
+
+var ambient_zenith_color: Color
+var ambient_horizon_color: Color
+var ambient_strength: float
+
+```
+
+Это обычный контейнер данных. Он ничего не рассчитывает и не знает о шейдерах.
+
+## 4.3. AtmosphereLightingComponent.gd
+
+`extends Node`
+
+Файл `SkyEnvironment/Scripts/AtmosphereLightingComponent.gd`.
+
+```
+
+class_name AtmosphereLightingComponent
+extends Node
+
+signal lighting_changed(state: AtmosphereLightingState)
+
+@export var sun_light: DirectionalLight3D
+@export var profile: AtmosphereLightingProfile
+
+var _current_state: AtmosphereLightingState
+
+
+func _ready() -> void:
+    publish()
+
+
+## Вызывается при изменении параметров или трансформации Sun.
+func publish() -> void:
+    if sun_light == null:
+        push_error("AtmosphereLighting: Sun Light is not assigned.")
+        return
+
+    if profile == null:
+        push_error("AtmosphereLighting: Profile is not assigned.")
+        return
+
+    var state := AtmosphereLightingState.new()
+
+    # DirectionalLight3D направляет лучи вдоль локальной -Z.
+    # Нам нужно направление НА источник, поэтому используем +Z.
+    state.sun_direction = sun_light.global_basis.z.normalized()
+
+    state.sun_color = sun_light.light_color
+    state.sun_energy = sun_light.light_energy * profile.direct_multiplier
+
+    state.anti_solar_color = profile.anti_solar_color
+    state.transition_color = profile.transition_color
+    state.solar_color = profile.solar_color
+
+    state.anti_solar_mu = profile.anti_solar_mu
+    state.solar_mu = profile.solar_mu
+    state.transition_position = profile.transition_position
+
+    state.ambient_zenith_color = profile.ambient_zenith_color
+    state.ambient_horizon_color = profile.ambient_horizon_color
+    state.ambient_strength = profile.ambient_strength
+
+    _current_state = state
+    lighting_changed.emit(_current_state)
+
+
+func get_current_state() -> AtmosphereLightingState:
+    return _current_state
+
+```
+
+Здесь намеренно нет `_process()`. Компонент не должен каждый кадр опрашивать сцену без необходимости.
+
+Существующий владелец трансформации Sun вызывает `publish()` после изменения направления или параметров света. Так мы сохраняем событийную архитектуру.
+
+## 4.4. AtmosphereShaderBindingComponent.gd
+
+`extends Node`
+
+Файл `SkyEnvironment/Scripts/AtmosphereShaderBindingComponent.gd`.
+
+Один экземпляр компонента обслуживает один `ShaderMaterial`. Поэтому Sky Gradient и Cirrus Veil могут иметь разные экземпляры и разные имена параметров.
+
+```
+
+class_name AtmosphereShaderBindingComponent
+extends Node
+
+@export var lighting_source: AtmosphereLightingComponent
+@export var target_material: ShaderMaterial
+
+## Названия uniforms задаются под конкретный шейдер.
+@export_group("Common Parameters")
+
+@export var sun_direction_uniform: StringName = &""
+@export var sun_color_uniform: StringName = &""
+@export var sun_energy_uniform: StringName = &""
+
+@export var ambient_zenith_uniform: StringName = &""
+@export var ambient_horizon_uniform: StringName = &""
+@export var ambient_strength_uniform: StringName = &""
+
+@export_group("Veil Palette")
+
+@export var bind_veil_palette: bool = false
+
+@export var anti_solar_uniform: StringName = &""
+@export var transition_uniform: StringName = &""
+@export var solar_uniform: StringName = &""
+
+@export var anti_solar_mu_uniform: StringName = &""
+@export var solar_mu_uniform: StringName = &""
+@export var transition_position_uniform: StringName = &""
+
+var _available_uniforms: Dictionary = {}
+
+
+func _ready() -> void:
+    if lighting_source == null or target_material == null:
+        push_error("AtmosphereShaderBinding: Missing references.")
+        return
+
+    _cache_uniforms()
+
+    lighting_source.lighting_changed.connect(_on_lighting_changed)
+
+    var initial_state := lighting_source.get_current_state()
+    if initial_state != null:
+        _apply_state(initial_state)
+
+
+func _cache_uniforms() -> void:
+    _available_uniforms.clear()
+
+    if target_material.shader == null:
+        return
+
+    for uniform_info: Dictionary in target_material.shader.get_shader_uniform_list():
+        _available_uniforms[StringName(uniform_info["name"])] = true
+
+
+func _set_if_available(parameter: StringName, value: Variant) -> void:
+    if parameter == &"":
+        return
+
+    if not _available_uniforms.has(parameter):
+        return
+
+    target_material.set_shader_parameter(parameter, value)
+
+
+func _on_lighting_changed(state: AtmosphereLightingState) -> void:
+    _apply_state(state)
+
+
+func _apply_state(state: AtmosphereLightingState) -> void:
+    _set_if_available(sun_direction_uniform, state.sun_direction)
+    _set_if_available(sun_color_uniform, state.sun_color)
+    _set_if_available(sun_energy_uniform, state.sun_energy)
+
+    _set_if_available(ambient_zenith_uniform, state.ambient_zenith_color)
+    _set_if_available(ambient_horizon_uniform, state.ambient_horizon_color)
+    _set_if_available(ambient_strength_uniform, state.ambient_strength)
+
+    if not bind_veil_palette:
+        return
+
+    _set_if_available(anti_solar_uniform, state.anti_solar_color)
+    _set_if_available(transition_uniform, state.transition_color)
+    _set_if_available(solar_uniform, state.solar_color)
+
+    _set_if_available(anti_solar_mu_uniform, state.anti_solar_mu)
+    _set_if_available(solar_mu_uniform, state.solar_mu)
+    _set_if_available(transition_position_uniform, state.transition_position)
+
+```
+
+Преимущество: компонент не зависит от конкретной реализации шейдера. Он не знает, как устроена вуаль или градиент. Он лишь передаёт параметры по указанным именам.
+
+## 4.5. Функция трёхступенчатой палитры для Veil Shader
+
+Это уже GLSL, не GDScript. Её следует встроить в существующий шейдер вуали, а не создавать отдельный шейдер.
+
+Сначала добавляются uniforms:
+
+```
+uniform vec3 hc_palette_anti_solar : source_color;
+uniform vec3 hc_palette_transition : source_color;
+uniform vec3 hc_palette_solar : source_color;
+
+uniform float hc_palette_anti_solar_mu = -0.35;
+uniform float hc_palette_solar_mu = 0.75;
+uniform float hc_palette_transition_position = 0.5;
+```
+
+Функция интерполяции:
+
+```
+// Три цветовые зоны по угловой близости к солнечному направлению.
+// Цвета здесь являются оттенками прямого света, а не источниками эмиссии.
+
+vec3 hc_angular_palette(vec3 view_dir, vec3 sun_dir) {
+    float mu = clamp(
+        dot(normalize(view_dir), normalize(sun_dir)),
+        -1.0,
+        1.0
+    );
+
+    float mu_range = max(
+        hc_palette_solar_mu - hc_palette_anti_solar_mu,
+        0.001
+    );
+
+    float t = clamp(
+        (mu - hc_palette_anti_solar_mu) / mu_range,
+        0.0,
+        1.0
+    );
+
+    float middle = clamp(
+        hc_palette_transition_position,
+        0.05,
+        0.95
+    );
+
+    if (t < middle) {
+        float k = smoothstep(0.0, middle, t);
+        return mix(
+            hc_palette_anti_solar,
+            hc_palette_transition,
+            k
+        );
+    }
+
+    float k = smoothstep(middle, 1.0, t);
+
+    return mix(
+        hc_palette_transition,
+        hc_palette_solar,
+        k
+    );
+}
+```
+
+В `hc_lit_color()` палитра используется как цветовой множитель прямого света:
+
+```
+vec3 palette_tint = hc_angular_palette(
+    dir,
+    cloud_light_direction
+);
+
+vec3 direct = sun_col
+    * palette_tint
+    * (cloud_light_strength * shade * shadow_t)
+    * hc_light_gain;
+```
+
+Здесь важно не перепутать смысл параметров:
+
+- `sun_col` — действительный цвет источника.
+- `palette_tint` — художественная модификация цвета рассеянного света в зависимости от направления наблюдения.
+- `shadow_t` — пропускание прямого света сквозь облачный слой.
+- `shade` — направленная составляющая освещения.
+
+Палитра не должна изменять `hc_density()`, `hc_coverage` или `hc_tau_per_km`.
+
+Для начала я бы использовал мягкие оттенки, близкие к белому, чтобы палитра не перекрашивала весь источник:
+
+| Зона             | Пример tint        |
+| ---------------- | ------------------ |
+| Противосолнечная | `0.78, 0.86, 1.00` |
+| Переходная       | `1.00, 0.94, 0.86` |
+| Солнечная        | `1.00, 0.78, 0.56` |
+
+Это стартовые художественные значения, а не физические константы.
+
+# 5. Как собрать компоненты в Godot
+
+Предлагаемая структура:
+
+```
+World
+├── SkyEnvironment
+│   ├── AtmosphereLightingComponent
+│   ├── SkyGradientBinding
+│   └── CirrusVeilBinding
+│
+├── DirectionalLight3D (Sun)
+│
+└── Camera3D
+```
+
+Ресурс настроек:
+
+```
+res://SkyEnvironment/Profiles/
+    AtmosphereLightingProfile.tres
+```
+
+Распределение:
+
+- `AtmosphereLightingComponent` получает ссылку на существующий `DirectionalLight3D` и `AtmosphereLightingProfile`.
+- `SkyGradientBinding` получает ссылку на компонент и материал градиента.
+- `CirrusVeilBinding` получает ссылку на тот же компонент и материал вуали.
+- Оба визуальных потребителя слушают один сигнал.
+
+Важная поправка к строке направления в предыдущем скрипте: для устойчивости к масштабу и возможным преобразованиям узла лучше использовать:
+
+```
+state.sun_direction = sun_light.global_basis \
+    .orthonormalized().z.normalized()
+```
+
+Так мы получаем направление к источнику, если свет направляет лучи вдоль локальной `-Z`.
+
+`publish()` должен вызываться владельцем изменения Sun после обновления его трансформации. Не нужно создавать постоянный опрос сцены.
+
+# 6. Промпт для Lead Architect
+
+Ниже готовое техническое задание. Его можно передать практически без изменений.
+
+# TECHNICAL DESIGN TASK
+
+## Rengar Prototype Omega — Unified Atmospheric Lighting Architecture
+
+### 1. Objective
+
+Разработать компонентную систему единого атмосферного освещения для трёх существующих визуальных подсистем:
+
+1. Sun — направление, цвет и интенсивность прямого света.
+2. Sky Gradient — цветовая среда и окружающая цветовая составляющая освещения.
+3. Cirrus Veil — объёмная облачная вуаль, реагирующая на прямое и окружающее освещение.
+
+Основной архитектурный принцип:
+
+**Sun задаёт направление и цвет света, Sky Gradient — цветовую среду, Cirrus Veil — объём и рассеивание.**
+
+### 2. Strict Lighting Constraints
+
+В атмосферной модели допускаются только следующие составляющие:
+
+- Sun — основной источник прямого освещения.
+- Sky Gradient — источник цветовой среды для окружающей составляющей освещения.
+- Cirrus Veil — визуальный потребитель освещения, не являющийся источником света.
+
+Запрещены:
+
+- самостоятельная эмиссия Cirrus Veil;
+- искусственное свечение земли и горизонта;
+- дополнительные захардкоженные источники света;
+- независимые цветовые поправки, имитирующие дополнительные источники;
+- любые обходные механизмы, нарушающие единую модель.
+
+Moon — единственное предусмотренное исключение. Её интеграция в текущую реализацию не входит.
+
+### 3. Architectural Requirements
+
+Строгое разделение ответственности:
+
+**AtmosphereLightingProfile**
+
+- хранит цветовые палитры и параметры освещения;
+- не содержит логики визуализации.
+
+**AtmosphereLightingState**
+
+- передаёт актуальные параметры;
+- не рассчитывает освещение.
+
+**AtmosphereLightingComponent**
+
+- получает направление, цвет и интенсивность от существующего Sun;
+- формирует состояние освещения;
+- публикует обновления через сигнал;
+- не управляет материалами напрямую;
+- не содержит визуальной логики.
+
+**Sky Gradient Consumer**
+
+- получает параметры общего источника;
+- использует их в существующем градиентном шейдере;
+- не создаёт дополнительные источники света.
+
+**Cirrus Veil Consumer**
+
+- получает параметры общего источника;
+- использует трёхступенчатую угловую цветовую палитру;
+- учитывает Direct Light, Ambient Light, Optical Depth и необязательное Self-Shadowing;
+- не имеет самостоятельной эмиссии.
+
+### 4. Three-Stage Angular Palette
+
+Использовать:
+
+mu = dot(view_direction, sun_direction)
+
+Три цветовые зоны:
+
+- Anti-Solar;
+- Transition;
+- Solar.
+
+Переходы должны быть плавными и управляться параметрами профиля.
+
+Палитра влияет на наблюдаемый цвет облачной вуали, но не должна изменять её геометрию, плотность или оптическую толщину.
+
+### 5. Integration Requirements
+
+До реализации необходимо:
+
+1. Изучить текущие Sun, Sky Gradient и Cirrus Veil.
+2. Найти существующие источники направления, цвета и интенсивности.
+3. Проверить имена текущих shader uniforms.
+4. Проверить, нет ли дублирования параметров между подсистемами.
+5. Согласовать интерфейсы новых компонентов.
+
+Не создавать параллельные источники параметров, если существующие компоненты уже выполняют соответствующую ответственность.
+
+### 6. Performance Requirements
+
+- Не использовать полный ray marching.
+- Сохранить односэмпловую базовую модель вуали.
+- Self-Shadowing должен быть отдельным отключаемым блоком.
+- Не использовать постоянный polling без необходимости.
+- Обновлять визуальные потребители через сигналы.
+
+### 7. Acceptance Criteria
+
+Система считается принятой, если:
+
+1. Sun, Sky Gradient и Cirrus Veil согласованно используют одно состояние атмосферного освещения.
+2. Изменение направления Sun корректно отражается в градиенте и облаках.
+3. Цвет вуали плавно меняется между тремя угловыми зонами.
+4. Увеличение плотности облака не вызывает искусственного свечения.
+5. Отключение Self-Shadowing не меняет базовую геометрию вуали.
+6. Нет дополнительных захардкоженных источников освещения.
+7. Нет дублирования ответственности между компонентами.
+8. Существующие архитектурные контракты Omega Baseline не нарушены.
+
+### 8. Required Deliverables
+
+Предоставить:
+
+- Component Diagram;
+- перечень новых и изменяемых скриптов;
+- сигнальные контракты;
+- перечень shader uniforms;
+- точные инструкции по настройке Inspector;
+- GDScript и GLSL;
+- план тестирования;
+- список обнаруженных конфликтов с существующей архитектурой.
+
+Не приступать к масштабному переписыванию существующих шейдеров до проверки текущих контрактов.
+
+# 7. Что я рекомендую утвердить до реализации
+
+Есть три решения, которые лучше согласовать с Архитектором до начала интеграции.
+
+1. Единственный владелец направления Sun. Не допускаем независимые `sk_sun_dir` и `cloud_light_direction`, которые могут разойтись. Они должны получать одно значение.
+2. Общая цветовая среда. Sky Gradient и Veil должны использовать согласованные параметры окружающего цвета. Не создавать две независимые палитры, которые случайно будут похожи.
+3. Отсутствие эмиссии вуали. `hc_color` в существующем шейдере должен трактоваться как цвет материала/альбедо или диагностический fallback, а не как дополнительный источник света.
+
+И ещё один принципиальный момент: не нужно пытаться получить цвет окружающего неба чтением уже отрисованного изображения Sky. Это создаст лишнюю зависимость и потенциально неудобный цикл. Лучше передавать общие параметры цветовой среды из одного ресурса обоим потребителям.
+
+Мой совет: сначала передай Lead Architect техническое задание и получи подтверждение контрактов. Приведённые Core Scripts — стартовая реализация предлагаемой схемы, а не утверждение, что мы уже согласовали новые архитектурные интерфейсы. После согласования можно будет аккуратно встроить её в существующий `SkyEnvironment`, не создавая ещё одну монолитную систему.

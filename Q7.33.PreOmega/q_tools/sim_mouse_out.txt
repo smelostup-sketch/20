@@ -1,8 +1,0 @@
-PASS экшен attack = ЛКМ (button_index=1), получено 1
-PASS экшен block = ПКМ (button_index=2), получено 2
-PASS ПКМ press -> is_block_input_held
-PASS motion во время блока копится в block_mouse_acc (канал жестов/финтов жив)
-PASS ПКМ release -> held=false
-PASS ЛКМ press -> WAITING_DIRECTION
-PASS ЛКМ release до жеста -> IDLE
-SUMMARY passed=7 failed=0
