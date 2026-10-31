@@ -1,0 +1,16 @@
+# Godot 4 — генерируемые файлы
+.godot/
+*.tmp
+*.translation
+export.cfg
+export_presets.cfg
+.import/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Логи и прочее
+*.log

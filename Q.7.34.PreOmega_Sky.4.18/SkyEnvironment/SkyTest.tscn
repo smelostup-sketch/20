@@ -1,0 +1,105 @@
+[gd_scene load_steps=23 format=3]
+
+[ext_resource type="Sky" path="res://SkyEnvironment/SkyEnvironment.tres" id="sky"]
+[ext_resource type="ShaderMaterial" path="res://SkyEnvironment/SkyEnvironmentMaterial.tres" id="mat"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyEnvironmentController.gd" id="ctrl"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyLightController.gd" id="lctrl"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyControlPanel.gd" id="panel"]
+[ext_resource type="Script" path="res://SkyEnvironment/Scripts/AtmosphereLightingComponent.gd" id="atmo_comp"]
+[ext_resource type="Script" path="res://SkyEnvironment/Scripts/AtmosphereShaderBindingComponent.gd" id="atmo_bind"]
+[ext_resource type="Resource" path="res://SkyEnvironment/Profiles/AtmosphereLightingProfile.tres" id="atmo_profile"]
+[ext_resource type="Script" path="res://SkyEnvironment/Scripts/SkyGradientWeightsComponent.gd" id="gradw"]
+[ext_resource type="Script" uid="uid://c6o4hvxauaari" path="res://SkyEnvironment/SkyPreset.gd" id="pscript"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_01.tres" id="p01"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_02.tres" id="p02"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_03.tres" id="p03"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_04.tres" id="p04"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_05.tres" id="p05"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_06.tres" id="p06"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_07.tres" id="p07"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_08.tres" id="p08"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_09.tres" id="p09"]
+[ext_resource type="Resource" path="res://SkyEnvironment/SkyPreset/Preset_10.tres" id="p10"]
+
+[sub_resource type="Environment" id="Environment_skytest"]
+background_mode = 2
+sky = ExtResource("sky")
+ambient_light_source = 3
+tonemap_mode = 2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_skytest"]
+size = Vector2(300, 300)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skytest"]
+albedo_color = Color(0.22, 0.26, 0.2, 1)
+
+[node name="SkyTest" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 2, 8)
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_skytest")
+surface_material_override/0 = SubResource("StandardMaterial3D_skytest")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+light_energy = 2.2
+shadow_enabled = true
+
+[node name="MoonLight" type="DirectionalLight3D" parent="."]
+light_energy = 0.12
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_skytest")
+
+[node name="SkyEnvironmentController" type="Node" parent="." node_paths=PackedStringArray("light_controller", "atmosphere", "gradient_weights")]
+script = ExtResource("ctrl")
+sky_material = ExtResource("mat")
+light_controller = NodePath("../SkyLightController")
+atmosphere = NodePath("../SkyEnvironment/AtmosphereLightingComponent")
+gradient_weights = NodePath("../SkyEnvironment/SkyGradientWeights")
+initial_preset = ExtResource("p09")
+
+[node name="SkyLightController" type="Node" parent="." node_paths=PackedStringArray("atmosphere", "sun_light", "moon_light")]
+script = ExtResource("lctrl")
+atmosphere = NodePath("../SkyEnvironment/AtmosphereLightingComponent")
+sun_light = NodePath("../SunLight")
+moon_light = NodePath("../MoonLight")
+environment = SubResource("Environment_skytest")
+
+[node name="SkyEnvironment" type="Node" parent="."]
+
+[node name="AtmosphereLightingComponent" type="Node" parent="SkyEnvironment" node_paths=PackedStringArray("sun_light")]
+script = ExtResource("atmo_comp")
+sun_light = NodePath("../../SunLight")
+profile = ExtResource("atmo_profile")
+
+[node name="SkyGradientWeights" type="Node" parent="SkyEnvironment"]
+script = ExtResource("gradw")
+sky_material = ExtResource("mat")
+
+[node name="SkyGradientBinding" type="Node" parent="SkyEnvironment" node_paths=PackedStringArray("lighting_source")]
+script = ExtResource("atmo_bind")
+lighting_source = NodePath("../AtmosphereLightingComponent")
+target_material = ExtResource("mat")
+
+[node name="CirrusVeilBinding" type="Node" parent="SkyEnvironment" node_paths=PackedStringArray("lighting_source")]
+script = ExtResource("atmo_bind")
+lighting_source = NodePath("../AtmosphereLightingComponent")
+target_material = ExtResource("mat")
+bind_veil_palette = true
+sun_color_uniform = &"hc_sun_color"
+sun_energy_uniform = &"hc_sun_energy"
+ambient_zenith_uniform = &"hc_ambient_zenith"
+ambient_strength_uniform = &"hc_ambient_strength"
+anti_solar_uniform = &"hc_palette_anti_solar"
+transition_uniform = &"hc_palette_transition"
+solar_uniform = &"hc_palette_solar"
+anti_solar_mu_uniform = &"hc_palette_anti_solar_mu"
+solar_mu_uniform = &"hc_palette_solar_mu"
+transition_position_uniform = &"hc_palette_transition_position"
+
+[node name="SkyControlPanel" type="CanvasLayer" parent="." node_paths=PackedStringArray("controller")]
+script = ExtResource("panel")
+controller = NodePath("../SkyEnvironmentController")
+presets = Array[ExtResource("pscript")]([ExtResource("p01"), ExtResource("p02"), ExtResource("p03"), ExtResource("p04"), ExtResource("p05"), ExtResource("p06"), ExtResource("p07"), ExtResource("p08"), ExtResource("p09"), ExtResource("p10")])

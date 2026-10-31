@@ -1,0 +1,213 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index 0aff157..4a6acb5 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -203,13 +203,16 @@ const MID := {
+ }
+ # Вуаль по K-ключам (§8.2): master/curve/sun/sun_exp/lift + warm (display-hex → Color)
+ const VEILP := {
+-	"K0": {"master": 0.05, "curve": 4.0, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0, 0, 0, 1), "moon": 0.5},
+-	"K1": {"master": 0.12, "curve": 3.0, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.039, 0.031, 0.078, 1), "moon": 0.35},
+-	"K2": {"master": 0.25, "curve": 2.5, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.102, 0.063, 0.141, 1), "moon": 0.2},
+-	"K3": {"master": 0.55, "curve": 2.0, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05},
+-	"K4": {"master": 0.6, "curve": 2.0, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0},
+-	"K5": {"master": 0.5, "curve": 2.2, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0},
+-	"K6": {"master": 0.4, "curve": 2.5, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0},
++	# floor = зенитный пол высотной маски (плита над головой укрывает звёзды/луну),
++	# refract = преломление небесных тел градиентом плотности (р3 п.2); K3-K6 = 0/0 —
++	# побитово прежний вид; master ночей чуть поднят, чтобы укрытие читалось.
++	"K0": {"master": 0.05, "curve": 4.0, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0, 0, 0, 1), "moon": 0.5, "floor": 0.30, "refract": 0.25},
++	"K1": {"master": 0.18, "curve": 3.0, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.039, 0.031, 0.078, 1), "moon": 0.35, "floor": 0.35, "refract": 0.35},
++	"K2": {"master": 0.32, "curve": 2.5, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.102, 0.063, 0.141, 1), "moon": 0.2, "floor": 0.45, "refract": 0.40},
++	"K3": {"master": 0.55, "curve": 2.0, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "floor": 0.0, "refract": 0.0},
++	"K4": {"master": 0.6, "curve": 2.0, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.0, "refract": 0.0},
++	"K5": {"master": 0.5, "curve": 2.2, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "floor": 0.0, "refract": 0.0},
++	"K6": {"master": 0.4, "curve": 2.5, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "floor": 0.0, "refract": 0.0},
+ }
+ 
+ # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
+@@ -288,6 +291,10 @@ const VEIL_ROWS := [
+ 	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
+ 	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+ 	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
++	{"u": "veil_zen_floor", "n": "Пол вуали у зенита", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
++	 "h": "Доля вуали над головой: плита существует и у зенита, поэтому укрывает звёзды и луну там; 0 = прежний вид (зенит чист, K3-K6)"},
++	{"u": "veil_refract", "n": "Преломление в вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
++	 "h": "Небесные тела ЗА вуалью: направление звёзд/луны/солнца отклоняется градиентом плотности плиты — дрожат и плывут на кромках образований; 0 = без искажения (K3-K6)"},
+ 	{"u": "veil_master", "n": "Сила вуали (состояние)", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.6,
+ 	 "h": "Общая сила слоя вуали (таблица §8.2 по K-ключам; ночь K0 → 0.05 — зенит чистый)"},
+ 	{"u": "veil_curve", "n": "Высотная маска", "a": 0.5, "b": 6.0, "s": 0.05, "d": 2.0,
+@@ -812,6 +819,9 @@ func _apply_t(t: float) -> void:
+ 		_sky_mat.set_shader_parameter("veil_sun_exp", lerpf(float(v0["sun_exp"]), float(v1["sun_exp"]), f))
+ 		_sky_mat.set_shader_parameter("veil_lift", lerpf(float(v0["lift"]), float(v1["lift"]), f))
+ 		_sky_mat.set_shader_parameter("veil_warm", (v0["warm"] as Color).lerp(v1["warm"] as Color, f))
++		# вуаль между небом и небесными телами (р3 п.2): пол зенита и преломление
++		_sky_mat.set_shader_parameter("veil_zen_floor", lerpf(float(v0["floor"]), float(v1["floor"]), f))
++		_sky_mat.set_shader_parameter("veil_refract", lerpf(float(v0["refract"]), float(v1["refract"]), f))
+ 		# §10.6: солнце/луна/звёзды — из той же лестницы (§8.4)
+ 		var s0: Dictionary = SUNMOON[SEQ[i0]]
+ 		var s1: Dictionary = SUNMOON[SEQ[i1]]
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+index bb858cb..0d3c40a 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+@@ -271,7 +271,14 @@ uniform float veil_base : hint_range(0.0, 1.0) = 0.35;		// ФИКС А: пол 
+ uniform float veil_curve : hint_range(0.5, 6.0) = 2.0;		// высотная маска: 1 у горизонта, 0 в зените
+ uniform float veil_sun : hint_range(0.0, 2.0) = 1.4;		// добавка у солнца/зари (раскалённая дымка)
+ uniform float veil_sun_exp : hint_range(1.0, 12.0) = 4.0;	// угловая ширина солнечной маски
+-uniform float veil_lift : hint_range(0.0, 0.5) = 0.22;		// высветление P(dir) в теле вуали
++uniform float veil_lift : hint_range(0.0, 0.5) = 0.22;	// высветление P(dir) в теле вуали
++// ВУАЛЬ МЕЖДУ НЕБОМ И НЕБЕСНЫМИ ТЕЛАМИ (фидбек 27.10.26 р3 п.2: «вуаль не скрывает
++// звёзды и не искажает их, луна и звезды ближе вуали»): зенитный пол высотной маски —
++// плита существует и над головой, поэтому укрывает звёзды/луну у зенита (0 = прежний
++// вид, K3-K6); преломление — отклонение направления небесных тел градиентом плотности
++// плиты (0 = без искажения, K3-K6; гейт uniform'ом, цена в off = 0).
++uniform float veil_zen_floor : hint_range(0.0, 1.0) = 0.0;
++uniform float veil_refract : hint_range(0.0, 1.0) = 0.0;
+ uniform vec3 veil_warm : source_color = vec3(0.165, 0.078, 0.031);	// утепление (#2a1408, K4)
+ uniform float hc_debug = 0.0;				// 0 выкл / 1 плотность / 2 альфа / 3 оптическая толщина
+ 
+@@ -597,23 +604,34 @@ vec3 sky_palette(vec3 dir) {
+ // curtain, прежняя геометрия SKYHC) × высотная маска × солнечная маска × veil_master.
+ // Цвет вуали больше НЕ однотонный: берётся из sky_palette(dir) в sky() (§3.2).
+ // Марша НЕТ; при !hc_enabled — немедленный выход (uniform-гейт).
+-float hc_alpha(vec3 dir, out float dens_o, out float tau_o) {
+-	dens_o = 0.0;
+-	tau_o = 0.0;
+-	if (!hc_enabled) {
+-		return 0.0;
+-	}
++// Середина пути луча в плите вуали (та же геометрия, что hc_alpha; вынесено для
++// преломления небесных тел: градиент плотности берётся в этой точке).
++bool slab_interval(vec3 dir, out vec3 p_o, out float path_o) {
+ 	vec3 origin = hc_use_world_anchor ? POSITION : vec3(0.0);
+ 	// guard толщины плиты (тот же приём, что max(top − bottom, 1e-4) в layer_height_fraction)
+ 	float top_safe = hc_layer_bottom + max(hc_layer_top - hc_layer_bottom, 1e-4);
+ 	float t_near = 0.0;
+ 	float t_far = 0.0;
+ 	if (!layer_interval(dir, hc_layer_bottom - origin.y, top_safe - origin.y, t_near, t_far)) {
++		return false;
++	}
++	path_o = t_far - t_near;
++	p_o = origin + dir * min(0.5 * (t_near + t_far), HC_MAX_DIST);
++	return true;
++}
++
++float hc_alpha(vec3 dir, out float dens_o, out float tau_o) {
++	dens_o = 0.0;
++	tau_o = 0.0;
++	if (!hc_enabled) {
++		return 0.0;
++	}
++	vec3 p = vec3(0.0);
++	float path = 0.0;
++	if (!slab_interval(dir, p, path)) {
+ 		return 0.0;
+ 	}
+-	vec3 p = origin + dir * min(0.5 * (t_near + t_far), HC_MAX_DIST);
+ 	float d = hc_density(p);
+-	float path = t_far - t_near;
+ 	float tau = d * max(hc_tau_per_km, 0.0) * (path * 0.001);
+ 	float curtain = 1.0 - sstep(hc_curtain_start, hc_curtain_end, path);
+ 	float a = clamp((1.0 - exp(-tau)) * curtain, 0.0, 1.0);
+@@ -622,12 +640,19 @@ float hc_alpha(vec3 dir, out float dens_o, out float tau_o) {
+ 	return a;
+ }
+ 
++
+ void sky() {
+ 	vec3 dir = normalize(EYEDIR);
+ 	// SKYHC-1: диагностика вуали (hc_debug 1-3) — честный пропуск: ни солнца, ни
+ 	// градиента; показываем ИМЕННО член слоя (плотность/альфа/оптическая толщина).
+ 	// return в sky() запрещён движком → структура ветвлением (как в v0.5.3).
+ 	bool hc_diag = hc_debug > 0.5;
++	// плита вуали считается ДО небесных тел: её альфа/плотность нужны окклюзии и
++	// преломлению (фидбек 27.10.26 р3 п.2 «вуаль не скрывает звёзды и не искажает»).
++	float hc_a = 0.0;
++	float hc_d = 0.0;
++	float hc_tau = 0.0;
++	hc_a = hc_alpha(dir, hc_d, hc_tau);
+ 	// §5: солнце + луна + звёзды — аналитика в sky pass (диагностики hc_debug чистые).
+ 	vec3 sunbg = vec3(0.0);
+ 	if (!hc_diag) {
+@@ -635,13 +660,34 @@ void sky() {
+ 		// читают НАСТОЯЩЕЕ солнце (sk_sun_dir), а не cloud_light_direction — ночью
+ 		// игровой ключ светит С ЛУНЫ (антисоляр), и диск/ореол солнца вставали на место
+ 		// луны, а луна гасла (mvis=0). Днём оба направления совпадают — без изменений.
++		// НЕБЕСНЫЕ ТЕЛА ЗА ВУАЛЬЮ (р3 п.2): направление отклоняется градиентом плотности
++		// плиты (конечные разности в середине пути, 2 доп. выборки плотности; гейт
++		// veil_refract/hc_enabled/hc_d — в off цена 0, K3-K6 побитово). Звёзды и луна
++		// дрожат/плывут ЗА вуалью, лимб луны искажается на кромках образований.
++		vec3 cdir = dir;
++		if (veil_refract > 0.0 && hc_enabled && hc_d > 0.001) {
++			vec3 p = vec3(0.0);
++			float pth = 0.0;
++			if (slab_interval(dir, p, pth)) {
++				float e = 250.0;	// шаг конечных разностей по плоскости плиты, м
++				float d0 = hc_density(p);
++				vec3 g = vec3(hc_density(p + vec3(e, 0.0, 0.0)) - d0, 0.0,
++						hc_density(p + vec3(0.0, 0.0, e)) - d0);
++				float gl = length(g);
++				if (gl > 1e-5) {
++					vec3 g0 = g / gl;
++					vec3 gn = normalize(g0 - dir * dot(g0, dir));
++					cdir = normalize(dir + gn * (veil_refract * hc_d * veil_master * 0.06));
++				}
++			}
++		}
+ 		vec3 sd_sun = normalize(sk_sun_dir);
+ 		vec3 md = normalize(sk_moon_dir);	// луна независима от солнца (27.10.26 р.2)
+-		sunbg = sun_celestial(dir, sd_sun) + moon_celestial(dir);
++		sunbg = sun_celestial(cdir, sd_sun) + moon_celestial(cdir);
+ 		float horfade = smoothstep(-0.05, 0.15, dir.y);
+ 		float mdamp = 1.0 - smoothstep(-0.02, 0.02, md.y)
+-				* pow(max(dot(dir, md), 0.0), 8.0) * 0.7;
+-		sunbg += vec3(0.85, 0.90, 1.0) * (star_field(dir) * star_intensity * horfade * mdamp);
++				* pow(max(dot(cdir, md), 0.0), 8.0) * 0.7;
++		sunbg += vec3(0.85, 0.90, 1.0) * (star_field(cdir) * star_intensity * horfade * mdamp);
+ 	}
+ 
+ 	// Фон неба: двухполюсный градиент G(dir) (v0.5.1/v0.5.2) или плоский sky_color.
+@@ -652,12 +698,11 @@ void sky() {
+ 	// × veil_master. Цвет = P(dir), высветленный/утеплённый: однотонная вуаль запрещена
+ 	// (фиолетовый mid-пояс и тёмный зенит живут и под вуалью). Диск солнца вуаль
+ 	// ослабляет честно (mix по всему bg+sunbg). При veil_master/hc_enabled = 0 — base = bg+sunbg.
+-	float hc_a = 0.0;
+-	float hc_d = 0.0;
+-	float hc_tau = 0.0;
+-	hc_a = hc_alpha(dir, hc_d, hc_tau);
+ 	vec3 Pdir = sky_palette(dir);
+-	float height_mask = 1.0 - pow(clamp(dir.y, 0.0, 1.0), max(veil_curve, 0.001));
++	// высотная маска с зенитным полом: плита над головой НЕ прозрачна (veil_zen_floor),
++	// поэтому вуаль укрывает звёзды/луну и у зенита; floor=0 → прежняя формула (K3-K6)
++	float height_mask = mix(veil_zen_floor, 1.0,
++			1.0 - pow(clamp(dir.y, 0.0, 1.0), max(veil_curve, 0.001)));
+ 	float sp_v = clamp(dot(dir, normalize(sk_sun_dir)), 0.0, 1.0);
+ 	float sun_mask = 1.0 + veil_sun * pow(sp_v, veil_sun_exp);
+ 	// ФИКС А (баг «у солнца прозрачно»): узор плиты МОДУЛИРУЕТ плотность, но не гейтит:
+diff --git a/Q7.32.PreOmega/RoadMap.md b/Q7.32.PreOmega/RoadMap.md
+index 9f1450a..a2dbdce 100644
+--- a/Q7.32.PreOmega/RoadMap.md
++++ b/Q7.32.PreOmega/RoadMap.md
+@@ -353,6 +353,21 @@ q_tools/adr_movement_unification.md и q_tools/cleanup_inventory.md).
+       к честной толщине плиты (у зенита плита тоже непрозрача ≠ 0), звёзды и луну гасить
+       пропусканием вуали exp(−tau) по лучу + лёгкое угловое искажение (преломление)
+       градиентом плотности; приёмка — hc_debug=2 + глаза. В r3 НЕ трогаем.
++- [x] r4 ПРИНЯТ заказчиком (27.10.26): тег Q7.32_SkyLight_r4_ACCEPTED на aa6a100 —
++      базис для следующих раундов.
++- [x] ОЧЕРЕДЬ р3 п.2 ВЫПОЛНЕНА: ВЕРСИЯ Q7.32_SkyLight_r5 «veildepth»: ВУАЛЬ МЕЖДЕ НЕБА
++      И НЕБЕСНЫХ ТЕЛ. (1) Честная плита над головой: height_mask получила зенитный пол
++      veil_zen_floor (ночные ключи 0.30/0.35/0.45, K3-K6 = 0 → побитово): вуаль существует
++      и у зенита, поэтому укрывает звёзды/луну там, а не только у горизонта; окклюзия
++      небесных тел = та же нарисованная альфа veil_a (энергосогласованно, без второй
++      математики). (2) Преломление: новый uniform veil_refract (ночные 0.25/0.35/0.40,
++      K3-K6 = 0 → побитово): направление небесных тел отклоняется градиентом плотности
++      плиты (конечные разности по середине плиты, 2 доп. выборки плотности, гейт по
++      uniform'у — в off цена 0); звёзды и луна дрожат/плывут ЗА вуалью, лимб луны
++      искажается на кромках образований. (3) Ночная вуаль чуть плотнее (master K1
++      0.12→0.18, K2 0.25→0.32), чтобы укрытие читалось. Ручки пола и преломления
++      выведены в меню 8. Приёмка: hc_debug=2 + глаза (звёзды в blobs вуали тусклее и
++      дрожат, луна за вуалью плывёт).
+ - [ ] В ОЧЕРЕДИ (фидбек 27.10.26 р3, п.3): ГРАДИЕНТ — ДУГА ОТ СОЛНЦА. Координату рампы
+       перевести с высоты h на угловое удаление от солнца u = acos(dot(dir, sk_sun_dir))/π:
+       окна поясов (band/band2/top) и hmask становятся функциями u → изолинии градиента

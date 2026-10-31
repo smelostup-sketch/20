@@ -1,0 +1,48 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://SkyEnvironment/SkyEnvironment.gdshader" id="1_sh"]
+[ext_resource type="Texture2D" path="res://SkyEnvironment/streak_glare.png" id="2_streak"]
+[ext_resource type="Texture2D" path="res://SkyEnvironment/moon_detail.png" id="3_moon"]
+
+[resource]
+shader = ExtResource("1_sh")
+shader_parameter/sky_color = Color(0.32, 0.47, 0.68, 1)
+shader_parameter/use_gradient_sky = true
+shader_parameter/sun_enabled = true
+shader_parameter/moon_enabled = true
+shader_parameter/sun_disk_color = Vector3(1, 0.953, 0.816)
+shader_parameter/sun_size_deg = 1.8
+shader_parameter/sun_core_int = 5.0
+shader_parameter/sun_g1_int = 0.35
+shader_parameter/sun_g1_exp = 8.0
+shader_parameter/sun_g2_int = 0.12
+shader_parameter/sun_g2_exp = 2.5
+shader_parameter/moon_size = 0.02
+shader_parameter/moon_color = Vector3(0.753, 0.784, 0.91)
+shader_parameter/moon_glow_int = 0.0
+shader_parameter/moon_glow_exp = 40.0
+shader_parameter/star_intensity = 0.0
+shader_parameter/streak_tex = ExtResource("2_streak")
+shader_parameter/streak_int = 0.5
+shader_parameter/moon_detail_tex = ExtResource("3_moon")
+shader_parameter/moon_detail_int = 0.5
+shader_parameter/sk_c1 = Vector3(0.0157, 0.0627, 0.1333)
+shader_parameter/sk_c2 = Vector3(0.1686, 0.4588, 0.7098)
+shader_parameter/sk_c3 = Vector3(0.549, 0.7686, 0.9098)
+shader_parameter/sk_c4 = Vector3(1, 0.9529, 0.8392)
+shader_parameter/sk_glow_int = 0.3
+shader_parameter/sk_glow_exp = 6.0
+shader_parameter/sk_halo_hdr_gain = 1.4
+shader_parameter/sk_streak_gate_lo = 45.0
+shader_parameter/sk_streak_gate_hi = 60.0
+shader_parameter/sk_streak_half_w_deg = 45.0
+shader_parameter/sk_streak_half_h_deg = 26.6
+shader_parameter/sky_debug_mode = 0
+shader_parameter/sk_sun_dir = Vector3(0, 0, -1)
+shader_parameter/sk_dither = 1.0
+shader_parameter/sk_q1 = 0.01
+shader_parameter/sk_q2 = 0.155
+shader_parameter/sk_q3 = 0.52
+shader_parameter/sk_q4 = 1.0
+shader_parameter/sk_sharp = 1.0
+shader_parameter/sk_arc_stretch = 2.4

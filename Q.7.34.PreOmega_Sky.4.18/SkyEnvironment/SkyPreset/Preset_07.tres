@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkyPreset" format=3]
+
+[ext_resource type="Texture2D" path="res://SkyEnvironment/SkyPreset/preset_07.png" id="1_t2ptx"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyVeilProfile.gd" id="4_hoafe"]
+
+[sub_resource type="Resource" id="Resource_ly67x"]
+script = ExtResource("4_hoafe")
+veil_enabled = true
+
+[resource]
+script = ExtResource("2_script")
+preset_name = "07 · Алый закат над рекой (Q7.34, palletes.html)"
+preview = ExtResource("1_t2ptx")
+sun_elevation = -2.0
+col_sky1 = Color(0.4, 0.447059, 0.494118, 1)
+col_sky2 = Color(0.909804, 0.333333, 0.282353, 1)
+col_sky3 = Color(0.94902, 0.337255, 0.415686, 1)
+col_sky4 = Color(1, 0.952941, 0.721569, 1)
+col_light1 = Color(1, 0.866667, 0.564706, 1)
+col_light2 = Color(0.85098, 0.345098, 0.290196, 1)
+col_light3 = Color(0.141176, 0.25098, 0.290196, 1)
+breathe = 0.9
+streak_int = 0.4
+veil = SubResource("Resource_ly67x")
+metadata/_custom_type_script = "uid://c6o4hvxauaari"

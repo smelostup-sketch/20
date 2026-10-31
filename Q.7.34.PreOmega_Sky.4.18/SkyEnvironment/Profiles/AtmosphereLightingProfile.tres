@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AtmosphereLightingProfile" format=3]
+
+[ext_resource type="Script" path="res://SkyEnvironment/Scripts/AtmosphereLightingProfile.gd" id="1_alp"]
+
+[resource]
+script = ExtResource("1_alp")
+anti_solar_color = Color(0.78, 0.86, 1, 1)
+transition_color = Color(1, 0.94, 0.86, 1)
+solar_color = Color(1, 0.78, 0.56, 1)
+anti_solar_mu = -0.35
+solar_mu = 0.75
+transition_position = 0.5
+direct_multiplier = 1.0
+ambient_zenith_color = Color(0.12, 0.19, 0.38, 1)
+ambient_horizon_color = Color(0.38, 0.4, 0.48, 1)
+ambient_strength = 1.0

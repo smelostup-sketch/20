@@ -1,0 +1,18 @@
+PASS telegraph label exists (created in EnemyController._ready)
+PASS enemy effective attack speed = 1.3 (export on body, option C)
+PASS matrix attack=UP: blocks only defense=UP
+PASS matrix attack=LEFT: blocks only defense=RIGHT
+PASS matrix attack=RIGHT: blocks only defense=LEFT
+PASS dir=UP telegraph visible during windup
+PASS dir=UP arrow = ↑ (required block, not raw attack)
+PASS dir=UP telegraph hidden during swing
+INFO dir=UP post-swing recovery: telegraph visible=true (контракт: is_recovery && !swing_active)
+PASS dir=LEFT telegraph visible during windup
+PASS dir=LEFT arrow = → (required block, not raw attack)
+PASS dir=LEFT telegraph hidden during swing
+INFO dir=LEFT post-swing recovery: telegraph visible=true (контракт: is_recovery && !swing_active)
+PASS dir=RIGHT telegraph visible during windup
+PASS dir=RIGHT arrow = ← (required block, not raw attack)
+PASS dir=RIGHT telegraph hidden during swing
+INFO dir=RIGHT post-swing recovery: telegraph visible=true (контракт: is_recovery && !swing_active)
+SUMMARY passed=14 failed=0

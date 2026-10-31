@@ -1,0 +1,140 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index 87b766a..d281e1e 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -205,6 +205,8 @@ const VEIL_ROWS := [
+ 	 "h": "Размер бугорков мелкой детали в метрах: меньше — мельче фактура. Нижняя граница 800 — ниже возможен алиасинг на пологих углах к горизонту"},
+ 	{"u": "veil_base", "n": "Пол узора (дымка)", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.35,
+ 	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
++	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
++	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
+ 	{"u": "veil_master", "n": "Сила вуали (состояние)", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.6,
+ 	 "h": "Общая сила слоя вуали (таблица §8.2 по K-ключам; ночь K0 → 0.05 — зенит чистый)"},
+ 	{"u": "veil_curve", "n": "Высотная маска", "a": 0.5, "b": 6.0, "s": 0.05, "d": 2.0,
+@@ -279,7 +281,11 @@ var _float_rows := {}		# uniform -> {"sl": HSlider, "val": Label}
+ var _offset_sliders := {}	# "x"/"y"/"z" -> HSlider
+ var _hc_offset_base := Vector3.ZERO
+ var _tint_veil := true
+-var _linear_mode := false	# эксперимент §10.8: Environment.tonemap = Linear, земля без Filmic
++var _linear_mode := false	# текущий режим земли (Linear/Filmic)
++var _tonemap_override := 0	# 0 = авто по ключам (LIN), 1 = всегда Filmic, 2 = всегда Linear
++# Вердикт заказчика 25.10.26: ночи сочнее БЕЗ Filmic, закаты с Linear вырвиглазны —
++# поэтому авто: K0-K2 Linear, K3-K6 Filmic. Небо от режима не зависит (байпас §10.8).
++const LIN := {"K0": true, "K1": true, "K2": true, "K3": false, "K4": false, "K5": false, "K6": false}
+ var _env: Environment = null
+ var _saved_light_col: Variant = null
+ 
+@@ -381,7 +387,7 @@ func _build_ui() -> void:
+ 	for i in range(7):
+ 		var bt := Button.new()
+ 		bt.text = "K%d" % i
+-		bt.tooltip_text = str(LADDER_NAMES[i])
++		bt.tooltip_text = "%s · реф: %s" % [LADDER_NAMES[i], THUMBS[i]]
+ 		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ 		var idx := i
+ 		bt.pressed.connect(func() -> void: _apply_t(float(idx + 1)))
+@@ -412,12 +418,15 @@ func _build_ui() -> void:
+ 				_sky_mat.set_shader_parameter("cloud_light_color", _saved_light_col)
+ 		else:
+ 			_apply_t(_t))
+-	var lin := CheckButton.new()
+-	lin.text = "Земля без Filmic (эксперимент)"
+-	lin.button_pressed = _linear_mode
+-	lin.tooltip_text = "Environment.tonemap = Linear: земля без плёночной кривой (небо выглядит так же — байпас); цвета земли пред-конвертируются sRGB->linear"
+-	vbox.add_child(lin)
+-	lin.toggled.connect(func(on: bool) -> void: set_linear_mode(on))
++	var tmode := OptionButton.new()
++	for mn in ["Земля: авто по ключу", "Земля: всегда Filmic", "Земля: всегда Linear"]:
++		tmode.add_item(mn)
++	tmode.selected = _tonemap_override
++	tmode.tooltip_text = "Тонмапп ЗЕМЛИ: авто = Linear для ночей K0-K2 и Filmic для закатов K3-K6 (вердикт 25.10.26: ночи сочнее без Filmic, закаты с ним). НЕБО от режима не зависит (байпас §10.8) — меняется только земля"
++	vbox.add_child(tmode)
++	tmode.item_selected.connect(func(i: int) -> void:
++		_tonemap_override = i
++		_apply_t(_t))
+ 	_info = Label.new()
+ 	vbox.add_child(_info)
+ 	var thumbs := HBoxContainer.new()
+@@ -434,6 +443,7 @@ func _build_ui() -> void:
+ 		tr.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+ 		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+ 		tr.mouse_filter = Control.MOUSE_FILTER_STOP
++		tr.tooltip_text = "%s · реф: %s — клик: оверлей для сравнения" % [LADDER_NAMES[i], THUMBS[i]]
+ 		var idx := i
+ 		tr.gui_input.connect(func(ev: InputEvent) -> void:
+ 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+@@ -703,6 +713,13 @@ func _apply_t(t: float) -> void:
+ 		# больше не нужна — её цвет = P(dir) (§10.2)
+ 		if _tint_veil:
+ 			_sky_mat.set_shader_parameter("cloud_light_color", lit)
++	# тонмапп земли: авто по ближайшему ключу (вердикт 25.10.26) или оверрайд
++	var lin_target := false
++	match _tonemap_override:
++		1: lin_target = false
++		2: lin_target = true
++		_: lin_target = bool(LIN[SEQ[i0 if f < 0.5 else i1]])
++	_set_lin_raw(lin_target)
+ 	# SKY_TZ_LUT7 §10.3: свет земли из той же лестницы — KEY (color/energy основного
+ 	# DirectionalLight3D) и BOUNCE (нижний свет BounceLight); FILL = IBL неба (§7).
+ 	var g0: Dictionary = GROUND[SEQ[i0]]
+@@ -762,7 +779,7 @@ func _update_info() -> void:
+ 
+ 
+ func _show_overlay(idx: int) -> void:
+-	var path := refs_dir + "ref%d.png" % (idx + 1)
++	var path := refs_dir + str(THUMBS[clampi(idx, 0, THUMBS.size() - 1)])
+ 	if not ResourceLoader.exists(path):
+ 		return
+ 	_overlay.texture = load(path)
+@@ -828,12 +845,18 @@ func _kick_settle() -> void:
+ ## композит неба переключается на srgb_to_linear (небо выглядит так же), цвета земли
+ ## пред-конвертируются sRGB->linear, чтобы hex'ы таблицы доходили до экрана 1:1.
+ func set_linear_mode(on: bool) -> void:
++	_tonemap_override = 2 if on else 1
++	_apply_t(_t)
++
++
++func _set_lin_raw(on: bool) -> void:
++	if _linear_mode == on:
++		return
+ 	_linear_mode = on
+ 	if _env != null:
+ 		_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR if on else Environment.TONE_MAPPER_FILMIC
+ 	if _sky_mat != null:
+ 		_sky_mat.set_shader_parameter("comp_linear", on)
+-	_apply_t(_t)
+ 
+ 
+ func _s2l(u: float) -> float:
+diff --git a/Q7.32.PreOmega/RoadMap.md b/Q7.32.PreOmega/RoadMap.md
+index 0ad711b..dcefc53 100644
+--- a/Q7.32.PreOmega/RoadMap.md
++++ b/Q7.32.PreOmega/RoadMap.md
+@@ -326,4 +326,13 @@ q_tools/adr_movement_unification.md и q_tools/cleanup_inventory.md).
+       + производные земли key/fill/bounce — Приложение А в SKY_TZ_LUT7.md (там же
+       NIGHT_ADAPTED-блок для панели и 3 флага на арт-ревью: насыщенность K1-mid и
+       K1/K2-key). Рефы лежат в Assets/sky/refs/N1-N5.jpg. K3-K6 = M1/O-рефы, без изменений.
++- [x] ФИДБЕК 25.10.26 (раунд 2, меню/тонмапп): оверлей и миниатюры синхронизированы
++      с THUMBS (баг: клик K0-K2 открывал ref1-3, K5/K6 не открывали ничего — старая
++      нумерация ref%d); тултипы кнопок/миниатюр = имя состояния + файл рефа; колесо
++      камеры отвязано от открытых меню (зум только при CAPTURED, ThirdPersonCamera);
++      тонмапп земли АВТО по ключу: K0-K2 Linear, K3-K6 Filmic (вердикт: ночи сочнее
++      без Filmic, закаты вырвиглазны) + дропдаун «авто / всегда Filmic / всегда Linear»
++      (небо от режима не зависит — байпас §10.8); ручка A/B «Лунный блик на вуали»
++      (veil_moon). Ad-hoc: оверлей 7/7, авто/оверрайд тонмапп, кодирование земли
++      K0/K4, sim_aihud 8/8.
+ - [ ] ЖДЁМ ВВОДОВ: ассеты масок-пака облаков (§4.1). Флаги ⚑1/⚑2 закрыты 25.10.26.
+diff --git a/Q7.32.PreOmega/Scripts/ThirdPersonCamera.gd b/Q7.32.PreOmega/Scripts/ThirdPersonCamera.gd
+index 0f6429e..52603a2 100644
+--- a/Q7.32.PreOmega/Scripts/ThirdPersonCamera.gd
++++ b/Q7.32.PreOmega/Scripts/ThirdPersonCamera.gd
+@@ -42,7 +42,8 @@ func _input(event: InputEvent) -> void:
+ 		yaw -= event.relative.x * mouse_sens
+ 		pitch += event.relative.y * mouse_sens * (-1.0 if invert_vertical else 1.0)
+ 		pitch = clampf(pitch, deg_to_rad(-pitch_limit), deg_to_rad(pitch_limit))
+-	elif event is InputEventMouseButton:
++	elif event is InputEventMouseButton and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
++		# колесо отвязано на время открытых меню (мышь VISIBLE): скролл панели не зумит камеру
+ 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+ 			distance = maxf(min_dist, distance - zoom_speed)
+ 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:

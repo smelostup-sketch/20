@@ -1,0 +1,867 @@
+diff --git a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+index c8cf7dd..d807120 100644
+--- a/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
++++ b/Q7.32.PreOmega/Assets/sky/VeilSkyPanel.gd
+@@ -12,9 +12,9 @@ extends Node
+ ##      «Масштаб A/B» (HC_SCALE_PRESETS) и «Характер A/B» (HC_CHAR_PRESETS) — дословно.
+ ## Удалено при переносе: карточки (set_state/set_sun/якоря), гейт кучевых sk_clouds_on,
+ ## записи в удалённые uniform'ы (sk_ramp0-4, sk_rim_col, atmo_color).
+-## ДОБАВЛЕНО (задокументировано): (а) чекбокс «Красить вуаль состоянием» — по SKYHC-4
+-## цвет вуали берётся из общей P(dir) (§10.2): sk_mid + veil_* из лестницы; связка света: lit → cloud_light_color
+-## (в v0.5.2 вуаль была выключена, связка не использовалась; выкл → значения материала);
++## ДОБАВЛЕНО (задокументировано): (а) чекбокс «Красить вуаль состоянием» — связка SL
++## SKYHC-4 (r11_s3): lit → cloud_light_color, zen → cloud_ambient_sky_color (общие
++## данные света вуали и неба); (в v0.5.2 вуаль была выключена; выкл → значения материала);
+ ## (б) слайдер ветра (дрейф вуали) — пишет wind_speed рига VeilSkyRig;
+ ## (в) строки панели единообразны: имя + контрол + число (стиль меню бенча).
+ ## IBL-ЛАГ (SKY_TZ_LUT7 §7, способ 1): любое изменение состояния/ручек неба форсирует
+@@ -203,21 +203,34 @@ const GROUND := {
+ #     плоский, как в эталонной дневной модели);
+ #   p1..p5 — ПОЛОЖЕНИЯ стопов градиента (соотношения лестницы, угловые доли 0..1).
+ # Ночные значения сняты с рефов N2/N4/N5, дневные — симулятором под эталон дня.
++# r12_s3 (МИГРАЦИЯ ДАННЫХ под сферическую метрику u_ellip, вердикт «исправь
++# зенит/антисоляр»): p1..p5 пересчитаны так, что переходы стопов на СОЛЯРНОМ
++# ВЕРТИКАЛЕ остаются на прежних местах неба (p_new = psi*/pi, psi* — точка, где
++# старая метрика давала p_old; на вертикале новая u = psi/pi точно). Дни K3-K6
++# сдвинулись на <=0.014 (вид практически прежний), ночи пересчитаны существенно
++# (K0: p5 0.750 -> 1.000 — старый антисоляр «схлопывался» до u=0.75). Таблица
++# миграции — в changes.md (запись r12_s3). Доводка глазами по рефам — штатный
++# процесс: данные здесь, код не меняется.
++# r10_s3 (сессия 3, п.2 «верни видимое небо под горизонтом как в SL»): below_int
++# ночей K0-K2 возвращён 1.00 → 0.55 (уровень SL/r7-r8 — тень ниже горизонта
++# ЧАСТИЧНАЯ, небо под горизонтом видимо). r9-значение 1.00 вместе с узким окном
++# тени и гейтом клина давало чёрный низ купола. Если на ночах под горизонтом
++# вернётся «молоко» — доводка ДАННЫМИ (wedge_int/below_int), форма общая.
+ const SHAPE := {
+-	"K0": {"glow_int": 0.10, "wedge_int": 0.80, "low_dim": 0.30, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.050, "p2": 0.230, "p3": 0.420, "p4": 0.600, "p5": 0.750},
+-	"K1": {"glow_int": 0.20, "wedge_int": 1.20, "low_dim": 0.25, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.020, "p2": 0.120, "p3": 0.240, "p4": 0.420, "p5": 0.600},
+-	"K2": {"glow_int": 0.25, "wedge_int": 1.30, "low_dim": 0.22, "below_int": 1.00, "zen_w": 0.90,
+-		"p1": 0.015, "p2": 0.140, "p3": 0.280, "p4": 0.440, "p5": 0.600},
++	"K0": {"glow_int": 0.10, "wedge_int": 0.80, "low_dim": 0.30, "below_int": 0.55, "zen_w": 0.90,
++		"p1": 0.055, "p2": 0.223, "p3": 0.402, "p4": 0.662, "p5": 1.000},
++	"K1": {"glow_int": 0.20, "wedge_int": 1.20, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.90,
++		"p1": 0.020, "p2": 0.118, "p3": 0.231, "p4": 0.409, "p5": 0.630},
++	"K2": {"glow_int": 0.25, "wedge_int": 1.30, "low_dim": 0.22, "below_int": 0.55, "zen_w": 0.90,
++		"p1": 0.015, "p2": 0.138, "p3": 0.274, "p4": 0.436, "p5": 0.611},
+ 	"K3": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+ 		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
+ 	"K4": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
++		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.301, "p5": 0.520},
+ 	"K5": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
++		"p1": 0.010, "p2": 0.076, "p3": 0.158, "p4": 0.306, "p5": 0.518},
+ 	"K6": {"glow_int": 0.30, "wedge_int": 0.35, "low_dim": 0.25, "below_int": 0.55, "zen_w": 0.00,
+-		"p1": 0.010, "p2": 0.075, "p3": 0.155, "p4": 0.300, "p5": 0.520},
++		"p1": 0.010, "p2": 0.080, "p3": 0.170, "p4": 0.329, "p5": 0.514},
+ }
+ # порядок записи SHAPE в шейдер (uniform = "sk_" + ключ)
+ const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
+@@ -225,19 +238,20 @@ const SHAPE_KEYS := ["glow_int", "wedge_int", "low_dim", "below_int", "zen_w",
+ 
+ const PANEL_W := 352.0
+ 
+-# Вуаль по K-ключам (§8.2, r7): master/sun/sun_exp/lift/warm + лунный шеен.
+-# r7: густота вуали = оптическая толщина плиты по лучу (hc_alpha), поэтому
+-# veil_curve/veil_zen_floor/veil_refract УДАЛЕНЫ (вердикт п.1: зенит не влияет
+-# сам по себе ни на что; вуаль в зените видна за счёт базовой плотности слоя).
+-# master ночей поднят: при честной толщине прежние 0.05-0.32 давали невидимую вуаль.
++# Вуаль по K-ключам (r11_s3, SL SKYHC): тон/освещение вуали — ОБЩИЕ uniform'ы
++# (hc_color, cloud_light_*, cloud_ambient_* — связка панели lit/zen), НЕ данные ключа.
++# Прежняя таблица §10.2 (master/sun/sun_exp/lift/warm/blob) удалена вместе с моделью
++# «вуаль на P(dir)» (вердикт сессии 3 раунда 2: параметры вуали не должны кодировать
++# тон неба). Сохранён ТОЛЬКО лунный шеен veil_moon (feedback 25.10.26): ночи K0-K2 —
++# блик луны на вуали, дни — 0.
+ const VEILP := {
+-	"K0": {"master": 0.35, "sun": 0.0, "sun_exp": 6.0, "lift": 0.0, "warm": Color(0.02, 0.05, 0.12, 1), "moon": 0.5, "blob": Color(0.004, 0.008, 0.030, 1)},
+-	"K1": {"master": 0.45, "sun": 0.2, "sun_exp": 6.0, "lift": 0.05, "warm": Color(0.06, 0.04, 0.12, 1), "moon": 0.35, "blob": Color(0.010, 0.008, 0.045, 1)},
+-	"K2": {"master": 0.50, "sun": 0.5, "sun_exp": 5.0, "lift": 0.1, "warm": Color(0.10, 0.06, 0.16, 1), "moon": 0.2, "blob": Color(0.030, 0.020, 0.090, 1)},
+-	"K3": {"master": 0.55, "sun": 1.2, "sun_exp": 4.0, "lift": 0.2, "warm": Color(0.165, 0.094, 0.063, 1), "moon": 0.05, "blob": Color(0.120, 0.050, 0.060, 1)},
+-	"K4": {"master": 0.6, "sun": 1.4, "sun_exp": 4.0, "lift": 0.22, "warm": Color(0.165, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.160, 0.050, 0.080, 1)},
+-	"K5": {"master": 0.5, "sun": 1.0, "sun_exp": 5.0, "lift": 0.18, "warm": Color(0.102, 0.078, 0.031, 1), "moon": 0.0, "blob": Color(0.200, 0.120, 0.250, 1)},
+-	"K6": {"master": 0.4, "sun": 0.7, "sun_exp": 6.0, "lift": 0.15, "warm": Color(0.063, 0.063, 0.039, 1), "moon": 0.0, "blob": Color(0.250, 0.300, 0.450, 1)},
++	"K0": {"moon": 0.5},
++	"K1": {"moon": 0.35},
++	"K2": {"moon": 0.2},
++	"K3": {"moon": 0.05},
++	"K4": {"moon": 0.0},
++	"K5": {"moon": 0.0},
++	"K6": {"moon": 0.0},
+ }
+ 
+ # Солнце/луна/звёзды по K-ключам (§8.4): диск (цвет/размер°/core), луна (фаза/цвет/glow),
+@@ -312,12 +326,22 @@ const VEIL_ROWS := [
+ 	 "h": "Мелкие бугорки на границах образований: 0 — идеально гладкая вуаль (побитово прежний этап), 0.3-0.5 — органичная кромка; внутрь и наружу образований деталь не проникает"},
+ 	{"u": "hc_detail_scale", "n": "Размер бугорков", "a": 800.0, "b": 8000.0, "s": 100.0, "d": 3000.0,
+ 	 "h": "Размер бугорков мелкой детали в метрах: меньше — мельче фактура. Нижняя граница 800 — ниже возможен алиасинг на пологих углах к горизонту"},
+-	{"u": "veil_base", "n": "Пол узора (дымка)", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.35,
+-	 "h": "ФИКС А: плотность вуали там, где узора плиты нет (дымка у зари на скользящих лучах); 0 = вуаль только узором"},
++	{"u": "hc_light_gain", "n": "Прямой свет вуали", "a": 0.0, "b": 2.0, "s": 0.05, "d": 1.0,
++	 "h": "Яркость солнечной составляющей вуали: независимая ручка интенсивности слоя (0 — остаётся только заливка небом)"},
++	{"u": "hc_ambient_gain", "n": "Заливка неба вуали", "a": 0.0, "b": 2.0, "s": 0.05, "d": 1.0,
++	 "h": "Яркость небесной заливки вуали (0 — остаётся только прямой свет)"},
++	{"u": "hc_layer_bottom", "n": "Низ вуали", "a": 3000.0, "b": 12000.0, "s": 100.0, "d": 6000.0,
++	 "h": "Высота нижней границы слоя вуали в метрах"},
++	{"u": "hc_layer_top", "n": "Верх вуали", "a": 3500.0, "b": 15000.0, "s": 100.0, "d": 7200.0,
++	 "h": "Высота верхней границы: вместе с нижней задаёт толщину и плотность на взгляд"},
++	{"u": "hc_curtain_start", "n": "Начало растворения", "a": 1000.0, "b": 20000.0, "s": 250.0, "d": 4000.0,
++	 "h": "С какой длины пути в слое вуаль начинает таять (к горизонту путь длиннее). r11_s3: curtain возвращён (SL) — горизонт чистый, линия горизонта вуалью не детерминирована"},
++	{"u": "hc_curtain_end", "n": "Полное растворение", "a": 2000.0, "b": 40000.0, "s": 250.0, "d": 14000.0,
++	 "h": "Длина пути, за которой вуали нет: горизонт остаётся чистым, без полосы и мерцания"},
+ 	{"u": "veil_moon", "n": "Лунный блик на вуали", "a": 0.0, "b": 1.0, "s": 0.01, "d": 0.0,
+ 	 "h": "Шеен луны на вуали (ночи K0-K2); 0 = вуаль не видит луну (A/B проверка)"},
+ 	{"u": "sk_arc_stretch", "n": "Эллипс: растяжение света вдоль горизонта", "a": 1.0, "b": 4.0, "s": 0.05, "d": 2.4,
+-	 "h": "ГЛОБАЛЬНАЯ форма (вердикт 27.10.26 п.2): во сколько раз свет расходится вдоль горизонта дальше, чем по высоте. 1.0 = круг, 2.4 = эллипс с горизонтальной большой осью (ночные рефы N2/N4/N5, вердикт r9: +20%). Одна константа на все состояния — не параметр пресета"},
++	 "h": "ГЛОБАЛЬНАЯ форма (вердикт 27.10.26 п.2): во сколько раз свет расходится вдоль горизонта дальше, чем по высоте. 1.0 = круг, 2.4 = эллипс с горизонтальной большой осью (ночные рефы N2/N4/N5, вердикт r9: +20%). Одна константа на все состояния — не параметр пресета. r12_s3: у солнца в зените/надире растяжение плавно уходит к 1 (сфера) — азимутальная ось там вырождена"},
+ ]
+ const HC_DEBUG_MODES := ["Итог", "Плотность", "Покрытие (альфа)", "Оптическая толщина"]
+ const OFFSET_ROWS := [
+@@ -387,6 +411,7 @@ var _tonemap_override := 0	# 0 = авто (Filmic для всех), 1 = всег
+ const LIN := {"K0": false, "K1": false, "K2": false, "K3": false, "K4": false, "K5": false, "K6": false}
+ var _env: Environment = null
+ var _saved_light_col: Variant = null
++var _saved_amb_col: Variant = null
+ 
+ 
+ func _ready() -> void:
+@@ -409,6 +434,7 @@ func _ready() -> void:
+ 	# значения материала до покраски состоянием — для честного отката чекбокса
+ 	if _sky_mat != null:
+ 		_saved_light_col = _sky_mat.get_shader_parameter("cloud_light_color")
++		_saved_amb_col = _sky_mat.get_shader_parameter("cloud_ambient_sky_color")
+ 		_hc_offset_base = _pv("hc_offset", Vector3.ZERO)
+ 	_build_ui()
+ 	_set_panel_visible(start_visible)
+@@ -522,13 +548,15 @@ func _build_ui() -> void:
+ 	var tint := CheckButton.new()
+ 	tint.text = "Красить вуаль состоянием (lit/zen)"
+ 	tint.button_pressed = _tint_veil
+-	tint.tooltip_text = "Связка света состояния: lit → cloud_light_color (солнце/ореол). Выкл — значения материала"
++	tint.tooltip_text = "Связка SKYHC-4 (общие данные света, r11_s3): lit → cloud_light_color, zen → cloud_ambient_sky_color. Выкл — значения материала"
+ 	vbox.add_child(tint)
+ 	tint.toggled.connect(func(on: bool) -> void:
+ 		_tint_veil = on
+ 		if not on and _sky_mat != null:
+ 			if _saved_light_col != null:
+ 				_sky_mat.set_shader_parameter("cloud_light_color", _saved_light_col)
++			if _saved_amb_col != null:
++				_sky_mat.set_shader_parameter("cloud_ambient_sky_color", _saved_amb_col)
+ 		else:
+ 			_apply_t(_t))
+ 	var tmode := OptionButton.new()
+@@ -601,13 +629,21 @@ func _build_ui() -> void:
+ 	anch.toggled.connect(func(on: bool) -> void:
+ 		if _sky_mat != null:
+ 			_sky_mat.set_shader_parameter("hc_use_world_anchor", on))
++	var litv := CheckButton.new()
++	litv.text = "Освещение вуали (hc_use_lighting)"
++	litv.button_pressed = _pb("hc_use_lighting", false)
++	litv.tooltip_text = "Вкл — цвет вуали из ОБЩИХ данных света (солнце, градиент неба, рампа заката); выкл — постоянный цвет"
++	vbox.add_child(litv)
++	litv.toggled.connect(func(on: bool) -> void:
++		if _sky_mat != null:
++			_sky_mat.set_shader_parameter("hc_use_lighting", on))
+ 	var col := ColorPickerButton.new()
+-	var wm_col: Variant = _sky_mat.get_shader_parameter("veil_warm") if _sky_mat != null else null
+-	col.color = wm_col if wm_col is Color else Color(0.165, 0.078, 0.031)
+-	vbox.add_child(_row_labeled("Утепление вуали", col, "veil_warm: аддитивный тёплый сдвиг: veil_col = P(dir)·(1+lift)+warm (§3.2)"))
++	var hc_col: Variant = _sky_mat.get_shader_parameter("hc_color") if _sky_mat != null else null
++	col.color = hc_col if hc_col is Color else Color(0.92, 0.93, 0.96)
++	vbox.add_child(_row_labeled("Цвет вуали (альбедо)", col, "Тон слоя (альбедо в модели освещения SKYHC-4, r11_s3 — порт SL)"))
+ 	col.color_changed.connect(func(c: Color) -> void:
+ 		if _sky_mat != null:
+-			_sky_mat.set_shader_parameter("veil_warm", c)
++			_sky_mat.set_shader_parameter("hc_color", c)
+ 		_kick_settle())
+ 	_preset_buttons(vbox, "Масштаб A/B", HC_SCALE_PRESETS,
+ 		"Быстрое переключение размера образований: от мелких гряд до гигантских полос (A/B масштаба фазы 3)",
+@@ -813,17 +849,12 @@ func _apply_t(t: float) -> void:
+ 		var sh1: Dictionary = SHAPE[SEQ[i1]]
+ 		for sk_key in SHAPE_KEYS:
+ 			_sky_mat.set_shader_parameter("sk_" + sk_key, lerpf(float(sh0[sk_key]), float(sh1[sk_key]), f))
+-		# SKY_TZ_LUT7 §10.2: средний пояс P(dir) и все параметры вуали — из той же
+-		# лестницы состояний: вуаль берёт ЦВЕТ из общей палитры, однотонность исключена.
++		# средний пояс P(dir) — из той же лестницы состояний
+ 		_sky_mat.set_shader_parameter("sk_mid", (pa["mid"] as Vector3).lerp(pb["mid"] as Vector3, f))
++		# r11_s3 (SL SKYHC): вуальные данные ключа — только лунный шеен veil_moon
++		# (пишется в блоке §10.6 ниже); тон/свет вуали — общие uniform'ы.
+ 		var v0: Dictionary = VEILP[SEQ[i0]]
+ 		var v1: Dictionary = VEILP[SEQ[i1]]
+-		_sky_mat.set_shader_parameter("veil_master", lerpf(float(v0["master"]), float(v1["master"]), f))
+-		_sky_mat.set_shader_parameter("veil_sun", lerpf(float(v0["sun"]), float(v1["sun"]), f))
+-		_sky_mat.set_shader_parameter("veil_sun_exp", lerpf(float(v0["sun_exp"]), float(v1["sun_exp"]), f))
+-		_sky_mat.set_shader_parameter("veil_lift", lerpf(float(v0["lift"]), float(v1["lift"]), f))
+-		_sky_mat.set_shader_parameter("veil_warm", (v0["warm"] as Color).lerp(v1["warm"] as Color, f))
+-		_sky_mat.set_shader_parameter("veil_blob", (v0["blob"] as Color).lerp(v1["blob"] as Color, f))
+ 		# §10.6: солнце/луна/звёзды — из той же лестницы (§8.4)
+ 		var s0: Dictionary = SUNMOON[SEQ[i0]]
+ 		var s1: Dictionary = SUNMOON[SEQ[i1]]
+@@ -836,10 +867,11 @@ func _apply_t(t: float) -> void:
+ 		_sky_mat.set_shader_parameter("star_intensity", lerpf(float(s0["star"]), float(s1["star"]), f))
+ 		_sky_mat.set_shader_parameter("streak_int", lerpf(float(s0["streak"]), float(s1["streak"]), f))
+ 		_sky_mat.set_shader_parameter("veil_moon", lerpf(float(v0["moon"]), float(v1["moon"]), f))
+-		# связка света: lit как цвет источника (солнце/ореол); вуали отдельная заливка
+-		# больше не нужна — её цвет = P(dir) (§10.2)
++		# связка света (r11_s3, SL SKYHC-4 — общие данные света): lit — цвет источника
++		# (солнце/ореол/прямой свет вуали), zen — небесная заливка вуали.
+ 		if _tint_veil:
+ 			_sky_mat.set_shader_parameter("cloud_light_color", lit)
++			_sky_mat.set_shader_parameter("cloud_ambient_sky_color", zen)
+ 	# тонмапп земли: вердикт 27.10.26 — ОДИН режим Filmic (авто = Filmic для всех
+ 	# ключей, LIN все false); оверрайд оставлен для отладки
+ 	var lin_target := false
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+index b9c5cd1..4f0201a 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky.gdshader
+@@ -34,12 +34,17 @@ shader_type sky;
+ //   кучевые, C7/D3-конвенции) оставлены как есть — стенд упакован в
+ //   _PACKED/Q7.32.PreOmega.BENCH/, кучевые — в _PACKED/Q7.32.PreOmega.CUMULUS/.
+ //
+-// §10.2 (SKY_TZ_LUT7, 25.10.26): ВУАЛЬ ПЕРЕВЕДЕНА НА ОБЩУЮ P(dir): цвет =
+-//   sky_palette(dir)·(1+veil_lift)+veil_warm, альфа = узор плиты SKYHC × высотная
+-//   маска × солнечная маска × veil_master (таблицы §8.1/§8.2 по K-ключам). Модель
+-//   освещения вуали SKYHC-4 (hc_lit_color/hc_color/hc_*_gain/рампа C9) УДАЛЕНА —
+-//   ссылки на неё в исторических комментариях ниже относятся к модели до §10.2
+-//   (полный оригинал — в архиве Q7.32.PreOmega.SL/_PACKED/Q7.32.PreOmega.CUMULUS/).
++// §10.2 (SKY_TZ_LUT7, 25.10.26): ИСТОРИЧЕСКИ — вуаль переводилась на общую P(dir).
++//   r11_s3 (вердикт сессии 3 раунда 2, 27.10.2026) ОТМЕНИЛ §10.2 и ВЕРНУЛ модель
++//   SL v0.5.3: альфа = узор плиты × Beer-Lambert × curtain (чистый горизонт),
++//   цвет = собственное освещение SKYHC-4 (hc_lit_color: альбедо hc_color × прямой
++//   свет cloud_light_* × терминатор + заливка cloud_ambient_*), композит
++//   премноженный v0.5.3. Причина: below_ext/veil_* модели §10.2 кодировали тон
++//   неба под горизонтом параметрами вуали — линия горизонта при выключенном слое
++//   («параметр вуали кодирует тон неба — неприемлемо»). §3.2 «у горизонта
++//   veil_a → 1» отменена тем же вердиктом (curtain возвращён). Ссылки на §10.2/§3.2
++//   в комментариях ниже — исторические; полный оригинал SL — в архиве
++//   Q7.32.PreOmega.SL/_PACKED/ и Q7.32.PreOmega.SL/Q7.32_SKYprav_3.1/.
+ // ТЕКСТУРЫ ВУАЛИ: noise_pw (Perlin-Worley 128³) и noise_worley (Worley 32³) — сырые
+ //   .bin рядом с шейдером; в материал пишутся ОДИН РАЗ в рантайме (VeilSkyRig.gd +
+ //   CloudTextureLoader.gd): персистенция ImageTexture3D через ResourceSaver в Godot 4.7
+@@ -274,28 +279,33 @@ uniform float hc_tau_per_km = 0.35;		// оптическая толщина на
+ uniform vec3 hc_offset = vec3(0.0);			// дрейф/сдвиг поля, м (пишется с CPU, как cloud_offset)
+ uniform float hc_detail_strength = 0.0;		// SKYHC-3.3: амплитуда мелкой детали на кромках (0 = побитово 3.2; материал задаёт 0.35)
+ uniform float hc_detail_scale = 3000.0;		// SKYHC-3.3: метров на период Worley (размер бугорков; меню 800-8000)
+-// === Вуаль на общей P(dir) (SKY_TZ_LUT7 §3.2): тон и маски по K-ключам ===
+-uniform float veil_master : hint_range(0.0, 1.0) = 0.6;		// общая сила слоя (K0 ночь → 0.05)
+-uniform float veil_base : hint_range(0.0, 1.0) = 0.35;		// ФИКС А: пол узора — вуаль живёт и без узора (дымка у зари)
+-uniform float veil_sun : hint_range(0.0, 2.0) = 1.4;		// добавка у солнца/зари (раскалённая дымка)
+-uniform float veil_sun_exp : hint_range(1.0, 12.0) = 4.0;	// угловая ширина солнечной маски
+-uniform float veil_lift : hint_range(0.0, 0.5) = 0.22;	// высветление P(dir) в теле вуали
+-// ВУАЛЬ (r7, вердикт 27.10.2026 п.1: «в зените вуаль не видна — исправить»).
+-// Густота вуали берётся ИЗ НАСТОЯЩЕЙ ТОЛЩИНЫ СЛОЯ ПО ЛУЧУ (оптическая толщина
+-// tau = плотность × путь в метрах), а не из маски по высоте и не из отдельного
+-// «зенитного пола». Вверх луч проходит слой насквозь (путь = толщина плиты),
+-// к горизонту — по касательной (путь в разы длиннее) → у горизонта вуаль гуще.
+-// В зените вуаль ВИДНА, потому что у слоя есть базовая плотность veil_base.
+-// Звёзды, луна и диск солнца гасятся ТОЙ ЖЕ величиной (1 − veil_a), которой вуаль
+-// нарисована (ТЗ §11 тест 4) — одна математика, а не две.
+-// УДАЛЕНЫ: veil_zen_floor («зенитный пол» — отдельное влияние зенита) и
+-// veil_refract («преломление» — запечённый спецэффект со своей веткой).
+-uniform vec3 veil_warm : source_color = vec3(0.165, 0.078, 0.031);	// утепление (#2a1408, K4)
+-// ТОН ОБРАЗОВАНИЙ вуали (r9, вердикт п.1 «вуаль в зените не видна»): цвет самих
+-// облачных бугров (узор плотности d): ночи — тёмные силуэтные пятна поверх звёзд
+-// (рефы N2/N4/N5), дни — цветные облачные массы (рефы O). Данные ключа. Без этого
+-// вуаль в зените невидима: её цвет совпадал с цветом неба (тёмное на тёмном).
+-uniform vec3 veil_blob : source_color = vec3(0.02, 0.03, 0.08);
++// === ВУАЛЬ SKYHC-1..4 — МОДЕЛЬ SL v0.5.3 (r11_s3, вердикт сессии 3 раунда 2:
++// «вернуть старую вуаль»). Модель §10.2 «вуаль на общей P(dir)» (veil_master/base/
++// sun/sun_exp/lift/warm/blob + below_ext) УДАЛЕНА: below_ext красил тон неба ПОД
++// горизонтом параметрами вуали даже при выключенном слое (hc_enabled=false) —
++// отсюда детерминированная параметрами вуали линия горизонта («параметр вуали
++// кодирует тон неба, градиента — неприемлемо», вердикт сессии 3 раунда 2).
++// В SL-модели альфа вуали непрерывна через ноль с обеих сторон горизонта:
++// curtain гасит скользящие лучи (чистый горизонт), ниже горизонта луч плиту не
++// пересекает (а=0) — линия горизонта вуалью не создаётся ни при каких параметрах.
++// Освещение — собственное SKYHC-4 (hc_lit_color): альбедо hc_color × (прямой свет
++// cloud_light_* × мягкий терминатор + заливка небом); данные света общие с небом
++// (lit → cloud_light_color, zen → cloud_ambient_sky_color — связка панели).
++// Возврат curtain отменяет норму ТЗ §3.2 «у горизонта veil_a → 1» — осознанно,
++// по вердикту сессии 3 раунда 2. Композит — премноженный v0.5.3 (см. sky()). ===
++uniform float hc_curtain_start = 4000.0;	// длина пути в плите, с которой вуаль начинает таять, м
++uniform float hc_curtain_end = 14000.0;		// длина пути, за которой вуали нет (чистый горизонт), м
++uniform vec3 hc_color : source_color = vec3(0.92, 0.93, 0.96);	// тон вуали (альбедо в модели SKYHC-4)
++uniform bool hc_use_lighting = false;		// SKYHC-4: гейт модели освещения (false → цвет константой hc_color; материал задаёт true)
++uniform float hc_light_gain = 1.0;		// SKYHC-4: доля прямого света вуали (независимая ручка яркости слоя)
++uniform float hc_ambient_gain = 1.0;		// SKYHC-4: доля заливки небом (ambient C9)
++uniform bool use_sun_color_ramp = false;	// C9: выкл → свет одним cloud_light_color
++uniform vec3 ramp_near_color : source_color = vec3(0.95, 0.30, 0.25);	// C9: розовый середняк
++uniform vec3 ramp_far_color : source_color = vec3(0.70, 0.08, 0.08);	// C9: красный вдали от солнца
++uniform bool use_ambient_from_sky = false;	// выкл → ambient из cloud_ambient_sky_color (C8)
++uniform float ambient_sky_gain = 1.2;			// множитель яркости G(up) для ambient
++uniform vec3 cloud_ambient_sky_color : source_color = vec3(0.55, 0.63, 0.82);	// ambient верха слоя (небесный)
++uniform float cloud_ambient_energy = 0.45;	// интенсивность ambient (0 = выключен)
+ uniform float hc_debug = 0.0;				// 0 выкл / 1 плотность / 2 альфа / 3 оптическая толщина
+ 
+ // Явный smoothstep (переносимость между бэкендами, A5).
+@@ -326,24 +336,39 @@ bool layer_interval(vec3 dir, float bottom, float top, out float t_near, out flo
+ // невозможен конструктивно: второй функции цвета не существует.
+ //
+ // u_ellip(dir, sd) — угловое удаление от солнца в ЭЛЛИПТИЧЕСКОЙ метрике, 0..1:
+-//   0 = направление на солнце, 1 = антисоляр. Вертикальная составляющая смещения
+-//   входит как есть, горизонтальная — делённой на S (sk_arc_stretch, ГЛОБАЛЬНАЯ
+-//   константа): свет расходится вдоль горизонта в S раз дальше, чем по высоте,
+-//   поэтому изолинии градиента — эллипсы с горизонтальной большой осью.
+-//   Численно устойчиво: sin(угла) = |dir × sd|, cos(угла) = dir · sd — без acos.
+-//   У зенита/надира солнца горизонтальная ось вырождена (все азимуты равны) →
+-//   растяжение плавно снимается, иначе кольцо горизонта непостоянно.
++//   0 = направление на солнце, 1 = АНТИСОЛЯР (антипод НА СФЕРЕ: соляр в зените —
++//   антисоляр в надире; соляр у северного горизонта — антисоляр у южного; u(−sd)=1
++//   при ЛЮБОМ солнце). r12_s3 (вердикт сессии 3 раунда 3 «исправь зенит/антисоляр»,
++//   гипотеза заказчика «антисоляр схлопывается» подтверждена численно): обе ноги
++//   эллипса берутся из ИСТИННОГО тангенциального смещения w = dir − sd·(dir·sd):
++//     b = dot(w, upr_hat) — нога в плоскости солнце-зенит (со знаком, входит
++//       квадратом — гладко, без излома abs);
++//     a = dot(w, rgt) — азимутальная нога, тянется в Se раз: свет расходится вдоль
++//       горизонта дальше, чем по высоте → изолинии — эллипсы с горизонтальной
++//       большой осью (sk_arc_stretch — глобальная константа формы);
++//     u = atan(sqrt(b² + (a/Se)²), dir·sd)/π; при Se=1 ТОЧНО равна углу
++//       большого круга / π (проверено CPU: 8.4e-15).
++//   СТАРАЯ нога dv = dir.y − sd.y (r7-r11) была разностью Y-КООРДИНАТ (хордой),
++//   а не углом: в зените dir.y вырождается (производная нулевая) → метрика
++//   замерзала, изолинии u у зенита вырождались в веер вдоль солярного вертикала
++//   (артефакт градиента в зените), а антисоляр читал u = atan(2·sd.y, −1)/π:
++//   0.75 при солнце 30°, 0.65 при 90° — тёмный терминал рампы (0.75..0.97)
++//   становился недостижим, антисолярное ядро «схлопывалось».
++//   У зенита/надира солнца азимутальная ось вырождена (все азимуты равны) →
++//   Se плавно уходит к 1 (чистая сфера), иначе кольцо горизонта непостоянно;
++//   скачок базиса up0 на |sd.y|=0.99 невидим: при Se=1 метрика от базиса не зависит.
+ float u_ellip(vec3 dir, vec3 sd) {
+-	float dv = dir.y - sd.y;					// вертикальная составляющая (плоскость солнце-зенит)
+-	vec3 w = dir - sd * dot(dir, sd);			// смещение, перпендикулярное sd
++	vec3 w = dir - sd * dot(dir, sd);			// тангенциальное смещение от направления на солнце
+ 	vec3 up0 = abs(sd.y) > 0.99 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+ 	vec3 upr = up0 - sd * dot(up0, sd);			// «вверх» в плоскости солнце-зенит
+ 	float lu = length(upr);
+-	vec3 rgt = (lu > 1e-5) ? cross(sd, upr / lu) : vec3(1.0, 0.0, 0.0);	// вдоль горизонту
+-	float dh = abs(dot(w, rgt)) * (1.0 - sstep(0.85, 0.99, abs(sd.y)));
+-	float S = max(sk_arc_stretch, 1.0);
+-	float hh = dh / S;
+-	return atan(sqrt(dv * dv + hh * hh), dot(dir, sd)) / 3.141592653589793;
++	vec3 upr_hat = (lu > 1e-5) ? upr / lu : vec3(1.0, 0.0, 0.0);
++	vec3 rgt = (lu > 1e-5) ? cross(sd, upr_hat) : vec3(0.0, 0.0, 1.0);	// вдоль горизонту
++	float fade = 1.0 - sstep(0.85, 0.99, abs(sd.y));
++	float Se = mix(1.0, max(sk_arc_stretch, 1.0), fade);
++	float b = dot(w, upr_hat);					// in-plane нога (плоскость солнце-зенит)
++	float aAz = dot(w, rgt) / Se;					// азимутальная нога (растяжение вдоль горизонта)
++	return atan(sqrt(b * b + aAz * aAz), dot(dir, sd)) / 3.141592653589793;
+ }
+ 
+ // Многостопная рампа градиента по u (лестница стопов — см. uniform'ы выше).
+@@ -383,22 +408,24 @@ vec3 sky_palette(vec3 dir) {
+ 	vec2 sH = vec2(sd.x, sd.z);
+ 	float azH = dot(dH, sH) / max(length(dH) * length(sH), 1e-6);
+ 	float azf = pow(0.5 + 0.5 * azH, max(sk_wedge_az, 0.0));
+-	// r9: световая полоса горизонта — ТОЛЬКО над горизонтом: ниже горизонта земля
+-	// живёт тенью состояния (sk_below_col), а клин красил низ в цвет зари
+-	// (серо-лиловое «молоко» под горизонтом на ночах, рефы так не выглядят).
+-	// Окно — константа формы, общая для всех ключей.
+-	float band = azf * exp(-abs(dir.y) * sk_wedge_k) * sk_wedge_int
+-			* sstep(-0.06, -0.01, dir.y);
++	// r10_s3 (вердикт 27.10.2026 сессия 3, п.2 «верни видимое небо под горизонтом
++	// как в SL»): клин СНОВА симметричен горизонту — exp(−|h|·k), как в SL v0.5.1
++	// и в r7/r8. r9-гейт «только над горизонтом» (sstep(−0.06,−0.01,h)) гасил заревую
++	// полосу под горизонтом — одна из трёх причин чёрного низа купола. Ночное
++	// «молоко» подавляется ДАННЫМИ ключей (below_int/wedge_int), а не обрезкой формы.
++	float band = azf * exp(-abs(dir.y) * sk_wedge_k) * sk_wedge_int;
+ 	base = mix(base, sk_glow_col, clamp(band, 0.0, 1.0));
+ 	// ореол вокруг источника (форма glow_exp — общая; яркость glow_int — данные)
+ 	float sp = clamp(dot(dir, sd), 0.0, 1.0);
+ 	base = mix(base, sk_glow_col, clamp(pow(sp, sk_glow_exp) * sk_glow_int, 0.0, 1.0));
+ 	// ниже горизонта — в тень состояния
+ 	float h = clamp(dir.y, -1.0, 1.0);
+-	// r9: тень ниже горизонта вступает быстро (окно −3.4°): ниже горизонта луч у
+-	// азимута солнца имеет МАЛОЕ u и читает яркое ядро рампы напрямую — при широком
+-	// окне и below_int<1 HDR-остаток («молоко») красил низ купола (вердикт п.2).
+-	base = mix(base, sk_below_col, smoothstep(0.0, -0.06, h) * sk_below_int);
++	// r10_s3 (сессия 3, п.2): окно тени возвращено к SL/r7-r8 значению −0.18 (≈10.3°).
++	// r9-окно −3.4° вместе с below_int=1.0 ночей превращало низ купола в чёрный
++	// sk_below_col: видимое небо под горизонтом (продолжение градиента, заревое
++	// свечение под солнцем) исчезло. Как в SL: тень ЧАСТИЧНАЯ (below_int ≤ 0.55 —
++	// данные ключа), градиент под горизонтом читается.
++	base = mix(base, sk_below_col, smoothstep(0.0, -0.18, h) * sk_below_int);
+ 	// чем ниже солнце, тем менее освещён купол (скаляр, hue не меняет)
+ 	float low = 1.0 - smoothstep(0.0, 20.0, sd.y);
+ 	base *= 1.0 - sk_low_dim * low;
+@@ -613,48 +640,73 @@ float hc_density(vec3 p) {
+ // Закат/сумерки/ночь приходят из тех же uniform'ов, что небо и кучевые (пресеты
+ // F10-F14/TimeOfDayController) — вуаль согласована с атмосферой автоматически.
+ // CPU-зеркало: CloudsTestBench.compute_hc_lighting().
+-// SKYHC+§3.2: вклад вуали = АЛЬФА УЗОРА (плита: один сэмпл плотности + Beer-Lambert +
+-// curtain, прежняя геометрия SKYHC) × высотная маска × солнечная маска × veil_master.
+-// Цвет вуали больше НЕ однотонный: берётся из sky_palette(dir) в sky() (§3.2).
+-// Марша НЕТ; при !hc_enabled — немедленный выход (uniform-гейт).
+-// Середина пути луча в плите вуали (та же геометрия, что hc_alpha; вынесено для
+-// преломления небесных тел: градиент плотности берётся в этой точке).
+-bool slab_interval(vec3 dir, out vec3 p_o, out float path_o) {
+-	vec3 origin = hc_use_world_anchor ? POSITION : vec3(0.0);
+-	// guard толщины плиты (тот же приём, что max(top − bottom, 1e-4) в layer_height_fraction)
+-	float top_safe = hc_layer_bottom + max(hc_layer_top - hc_layer_bottom, 1e-4);
+-	float t_near = 0.0;
+-	float t_far = 0.0;
+-	if (!layer_interval(dir, hc_layer_bottom - origin.y, top_safe - origin.y, t_near, t_far)) {
+-		return false;
++// SKYHC-4: константы модели освещения (статус как у HC_MAX_DIST — не художественные
++// параметры): окно мягкого терминатора и его пол. Отношение яркости далеко/близко к
++// солнцу = 0.60 : 1.00 — cue «вуаль подсвечена со стороны солнца» БЕЗ объёмного
++// контраста (ТЗ фазы 4 п.3); непрерывность проверена сьютом SL (HC4-5).
++const float HC_TERM_LO = -0.35;
++const float HC_TERM_HI = 0.55;
++const float HC_SHADE_FLOOR = 0.60;
++
++// SKYHC-4 (r11_s3: восстановлена из SL v0.5.3 дословно; единственная адаптация —
++// ветка use_ambient_from_sky читает нынешний ЕДИНЫЙ узел цвета sky_palette вместо
++// sky_gradient v0.5.x: роль та же — G(up)/P(up)). CPU-зеркало: CloudsTestBench.
++// compute_hc_lighting() (упакован в SL/_PACKED/Q7.32.PreOmega.BENCH).
++vec3 hc_lit_color(vec3 dir) {
++	vec3 ldir = cloud_light_direction / max(length(cloud_light_direction), 1e-5);
++	float cos_theta = dot(dir, ldir);
++	vec3 sun_col = cloud_light_color;
++	if (use_sun_color_ramp) {
++		sun_col = mix(mix(ramp_far_color, ramp_near_color, sstep(0.30, 0.80, cos_theta)),
++			cloud_light_color, sstep(0.93, 0.995, cos_theta));
++	}
++	float shade = mix(HC_SHADE_FLOOR, 1.0, sstep(HC_TERM_LO, HC_TERM_HI, cos_theta));
++	vec3 direct = sun_col * (cloud_light_strength * shade) * hc_light_gain;
++	vec3 amb_top = cloud_ambient_sky_color;
++	if (use_ambient_from_sky) {
++		amb_top = (use_gradient_sky ? sky_palette(vec3(0.0, 1.0, 0.0)) : sky_color) * ambient_sky_gain;
+ 	}
+-	path_o = t_far - t_near;
+-	p_o = origin + dir * min(0.5 * (t_near + t_far), HC_MAX_DIST);
+-	return true;
++	vec3 ambient = amb_top * (cloud_ambient_energy * hc_ambient_gain);
++	return hc_color * (direct + ambient);
+ }
+ 
+-float hc_alpha(vec3 dir, out float dens_o, out float tau_o) {
++// SKYHC (r11_s3: hc_evaluate из SL v0.5.3 дословно): вклад слоя в луч. Возвращает
++// ПРЕМУНОЖЕННУЮ радиацию (rgb = цвет·a), alpha_o — покрытие, dens_o/tau_o — диагностика.
++// Марша НЕТ: один сэмпл плотности в середине плиты + Beer-Lambert по длине пути в плите
++// (path = t_far − t_near), поэтому у зенита вуаль тоньше, а к горизонту плотнее (физично),
++// и curtain по той же длине пути гасит скользящие лучи (чистый горизонт + нет алиасинга
++// растянутой проекции: у ImageTexture3D нет mip-уровней). Пересечение плиты — той же
++// layer_interval(), что и у кучевых (без дублирования). При !hc_enabled — немедленный
++// выход (uniform-гейт). Альфа вуали НЕПРЕРЫВНА через ноль у горизонта: сверху её гасит
++// curtain (path → ∞), снизу луч плиту не пересекает (а = 0) — ступени нет ни при каких
++// параметрах вуали (детерминант линии горизонта больше не существует).
++vec3 hc_evaluate(vec3 dir, out float alpha_o, out float dens_o, out float tau_o) {
++	alpha_o = 0.0;
+ 	dens_o = 0.0;
+ 	tau_o = 0.0;
+ 	if (!hc_enabled) {
+-		return 0.0;
++		return vec3(0.0);
+ 	}
+-	vec3 p = vec3(0.0);
+-	float path = 0.0;
+-	if (!slab_interval(dir, p, path)) {
+-		return 0.0;
++	vec3 origin = hc_use_world_anchor ? POSITION : vec3(0.0);
++	// guard толщины плиты (тот же приём, что max(top − bottom, 1e-4) в layer_height_fraction)
++	float top_safe = hc_layer_bottom + max(hc_layer_top - hc_layer_bottom, 1e-4);
++	float t_near = 0.0;
++	float t_far = 0.0;
++	if (!layer_interval(dir, hc_layer_bottom - origin.y, top_safe - origin.y, t_near, t_far)) {
++		return vec3(0.0);
+ 	}
++	vec3 p = origin + dir * min(0.5 * (t_near + t_far), HC_MAX_DIST);
+ 	float d = hc_density(p);
+-	// r7 (вердикт 27.10.2026 п.1): ПОЛ ГУСТОТЫ veil_base — слой существует и там, где
+-	// узора нет, поэтому вуаль видна и straight up (ТЗ §3.2 «1 у горизонта» выполняется
+-	// самой геометрией: путь в плите растёт к горизонту). curtain УБРАН: он гасил вуаль
+-	// у горизонта (наследие реймарча кучевых «чистый горизонт»), что прямо противоречит
+-	// ТЗ §3.2 («у горизонта veil_a → 1»). Точность у горизонта обеспечена HC_MAX_DIST.
+-	float d_eff = mix(veil_base, 1.0, d);
+-	float tau = d_eff * max(hc_tau_per_km, 0.0) * (path * 0.001);
++	float path = t_far - t_near;
++	float tau = d * max(hc_tau_per_km, 0.0) * (path * 0.001);	// path в м → км
++	float curtain = 1.0 - sstep(hc_curtain_start, hc_curtain_end, path);
++	float a = clamp((1.0 - exp(-tau)) * curtain, 0.0, 1.0);
+ 	dens_o = d;
+ 	tau_o = tau;
+-	return clamp(1.0 - exp(-tau), 0.0, 1.0);
++	alpha_o = a;
++	// SKYHC-4: гейт освещения — при hc_use_lighting=false цвет константой hc_color
++	// (побитово SKYHC-3.3); при true — модель hc_lit_color (те же источники, что кучевые).
++	return (hc_use_lighting ? hc_lit_color(dir) : hc_color) * a;
+ }
+ 
+ 
+@@ -664,12 +716,13 @@ void sky() {
+ 	// градиента; показываем ИМЕННО член слоя (плотность/альфа/оптическая толщина).
+ 	// return в sky() запрещён движком → структура ветвлением (как в v0.5.3).
+ 	bool hc_diag = hc_debug > 0.5;
+-	// плита вуали считается ДО небесных тел: её альфа/плотность нужны окклюзии и
+-	// преломлению (фидбек 27.10.26 р3 п.2 «вуаль не скрывает звёзды и не искажает»).
++	// плита вуали считается ДО небесных тел: её покрытие нужно окклюзии тел
++	// (фидбек 27.10.26 р3 п.2 «вуаль не скрывает звёзды») и лунному шеену.
++	// r11_s3: hc_evaluate из SL v0.5.3 — премноженная радиация (rgb = цвет·a).
+ 	float hc_a = 0.0;
+ 	float hc_d = 0.0;
+ 	float hc_tau = 0.0;
+-	hc_a = hc_alpha(dir, hc_d, hc_tau);
++	vec3 hc_rgb = hc_evaluate(dir, hc_a, hc_d, hc_tau);
+ 	// §5: солнце + луна + звёзды — аналитика в sky pass (диагностики hc_debug чистые).
+ 	vec3 sunbg = vec3(0.0);
+ 	if (!hc_diag) {
+@@ -688,45 +741,28 @@ void sky() {
+ 		sunbg += vec3(0.85, 0.90, 1.0) * (star_field(cdir) * star_intensity * horfade * mdamp);
+ 	}
+ 
+-	// ЦВЕТ: одна функция P(dir) на купол и на вуаль (r7; ТЗ §3.1, §13). Второй модели
+-	// цвета в шейдере больше нет — рассинхрон «вуаль другого цвета» невозможен.
++	// ЦВЕТ: небо — единая P(dir) (r7, ТЗ §3.1). ВУАЛЬ — модель SL SKYHC (r11_s3,
++	// вердикт сессии 3 раунда 2 «вернуть старую вуаль»): премноженный композит
++	// v0.5.3 base = bg·(1 − hc_a) + hc_rgb, hc_rgb — премноженная радиация слоя
++	// (собственное освещение SKYHC-4, а не тон P(dir)). Параметры вуали больше НЕ
++	// кодируют тон неба/градиента: при hc_enabled=false hc_a=0, hc_rgb=0 → кадр
++	// побитово равен P(dir)+тела, линия горизонта вуалью не детерминирована.
+ 	vec3 Pdir = sky_palette(dir);
+-	vec3 bg = Pdir;
+-	// ВУАЛЬ (r7, вердикт п.1 «в зените вуаль не видна — исправить»):
+-	//   veil_a = (1 − exp(−tau)) × sun_mask × veil_master,
+-	// tau = оптическая толщина слоя ПО ЛУЧУ (плотность × путь в км, hc_alpha).
+-	// Вверх путь = толщина плиты (вуаль видна), к горизонту путь в разы длиннее
+-	// (вуаль гуще). Маски по высоте и «зенитного пола» нет: густота получается из
+-	// геометрии слоя, а не из отдельного влияния зенита. sun_mask — раскалённая дымка
+-	// у зари (ТЗ §3.2). Цвет вуали = та же P(dir), высветленная/утеплённая (§3.2:
+-	// однотонная вуаль запрещена). При veil_master = 0 или hc_enabled = false → base = bg.
+-	float sp_v = clamp(dot(dir, normalize(sk_sun_dir)), 0.0, 1.0);
+-	float sun_mask = 1.0 + veil_sun * pow(sp_v, veil_sun_exp);
+-	// r9 (вердикт п.3 «появилась линия горизонта»): ступенька возникала потому, что
+-	// выше горизонта у самой линии путь в слое огромен (альфа → 1), а ниже горизонта
+-	// луч слой не пересекает (альфа = 0). curtain, маскировавший стык, удалён в r7.
+-	// ТЕПЕРЬ: ниже горизонта вуаль продолжается значением предела сверху и плавно
+-	// тает к −8.6° (окна — константы формы, не данные ключа). Ступени нет.
+-	float h_v = clamp(dir.y, -1.0, 1.0);
+-	float below_ext = sstep(-0.15, 0.0, h_v) * (1.0 - sstep(0.0, 0.005, h_v));
+-	float pat = max(hc_a, below_ext);
+-	float veil_a = clamp(pat * sun_mask * veil_master, 0.0, 1.0);
+-	// цвет: дымка из P(dir) + тон самих образований (узор d), см. veil_blob
+-	vec3 veil_col = mix(Pdir * (1.0 + veil_lift) + veil_warm, veil_blob, hc_d);
++	vec3 base_lin = Pdir * (1.0 - hc_a) + hc_rgb;
++	// лунный свет на вуали: шеен по направлению луны, пропорционален ПОКРЫТИЮ вуали
++	// hc_a (раньше вуаль луну «не видела» — feedback 25.10.26). Направление —
++	// sk_moon_dir (независимая луна, 27.10.26 р.2): антисоляр больше не авторитет.
++	vec3 md_s = normalize(sk_moon_dir);
++	vec3 mgc = mix(moon_color, filmic3(sk_mid), 0.55);
++	float msheen = pow(max(dot(dir, md_s), 0.0), 5.0) * veil_moon * hc_a;
+ 	// §5.3/§10.8: display-композит с bypass тонмаппера: купол+вуаль → filmic в display,
+ 	// небесные тела ПРИБАВЛЯЮТСЯ в display (hue палитры не десатурируется Filmic'ом),
+ 	// затем точный inv_filmic — движковый тонмапп возвращает сумму 1:1. Вуаль ближе к
+-	// камере: её альфа честно ослабляет небесные тела (1 − veil_a), диск в т.ч.
+-	vec3 base_lin = mix(bg, veil_col, veil_a);
+-	// лунный свет на вуали: шеен по направлению луны, пропорционально альфе вуали
+-	// (раньше вуаль луну «не видела» — feedback 25.10.26). Направление — sk_moon_dir
+-	// (независимая луна, 27.10.26 р.2): антисоляр больше не авторитет для луны.
+-	vec3 md_s = normalize(sk_moon_dir);
+-	vec3 mgc = mix(moon_color, filmic3(sk_mid), 0.55);
+-	float msheen = pow(max(dot(dir, md_s), 0.0), 5.0) * veil_moon * veil_a;
+-	vec3 disp = filmic3(base_lin) + sunbg * (1.0 - veil_a) + mgc * msheen;
++	// камере: её покрытие честно ослабляет небесные тела (1 − hc_a), диск в т.ч.
++	// (ТЗ §11 тест 4 — одна математика окклюзии).
++	vec3 disp = filmic3(base_lin) + sunbg * (1.0 - hc_a) + mgc * msheen;
+ 	if (hc_diag) {
+-		COLOR = hc_debug < 1.5 ? vec3(hc_d) : (hc_debug < 2.5 ? vec3(veil_a) : vec3(clamp(hc_tau, 0.0, 1.0)));
++		COLOR = hc_debug < 1.5 ? vec3(hc_d) : (hc_debug < 2.5 ? vec3(hc_a) : vec3(clamp(hc_tau, 0.0, 1.0)));
+ 	} else if (comp_linear) {
+ 		// эксперимент: движок тонмаппит Linear (только sRGB-encode) — отдаём display
+ 		// через sRGB-encode-инверсию; небо выглядит ТАК ЖЕ, земля — без Filmic
+diff --git a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+index adf78d9..353cbbd 100644
+--- a/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
++++ b/Q7.32.PreOmega/Assets/sky/preomega_sky_material.tres
+@@ -11,6 +11,13 @@ shader_parameter/use_gradient_sky = true
+ shader_parameter/cloud_light_direction = Vector3(-0.75, 0.5, -0.43)
+ shader_parameter/cloud_light_color = Color(1, 0.97, 0.92, 1)
+ shader_parameter/cloud_light_strength = 0.7
++shader_parameter/use_sun_color_ramp = false
++shader_parameter/ramp_near_color = Color(0.95, 0.3, 0.25, 1)
++shader_parameter/ramp_far_color = Color(0.7, 0.08, 0.08, 1)
++shader_parameter/use_ambient_from_sky = false
++shader_parameter/ambient_sky_gain = 1.2
++shader_parameter/cloud_ambient_sky_color = Color(0.55, 0.63, 0.82, 1)
++shader_parameter/cloud_ambient_energy = 0.45
+ shader_parameter/sun_visible = true
+ shader_parameter/sun_disk_color = Vector3(1, 0.953, 0.816)
+ shader_parameter/sun_size_deg = 1.8
+@@ -31,14 +38,6 @@ shader_parameter/moon_detail_tex = ExtResource("3_moon")
+ shader_parameter/moon_detail_int = 0.5
+ shader_parameter/hc_enabled = true
+ shader_parameter/sk_mid = Vector3(0.10758, 0.036102, 0.078501)
+-shader_parameter/veil_master = 0.6
+-shader_parameter/veil_base = 0.35
+-shader_parameter/veil_curve = 2.0
+-shader_parameter/veil_sun = 1.4
+-shader_parameter/veil_sun_exp = 4.0
+-shader_parameter/veil_lift = 0.22
+-shader_parameter/veil_warm = Color(0.165, 0.078, 0.031, 1)
+-shader_parameter/veil_blob = Color(0.02, 0.03, 0.08, 1)
+ shader_parameter/hc_use_world_anchor = true
+ shader_parameter/hc_layer_bottom = 6000.0
+ shader_parameter/hc_layer_top = 7200.0
+@@ -53,8 +52,12 @@ shader_parameter/hc_tau_per_km = 0.35
+ shader_parameter/hc_curtain_start = 4000.0
+ shader_parameter/hc_curtain_end = 14000.0
+ shader_parameter/hc_offset = Vector3(0, 0, 0)
++shader_parameter/hc_color = Color(0.92, 0.93, 0.96, 1)
+ shader_parameter/hc_detail_strength = 0.35
+ shader_parameter/hc_detail_scale = 3000.0
++shader_parameter/hc_use_lighting = true
++shader_parameter/hc_light_gain = 1.0
++shader_parameter/hc_ambient_gain = 1.0
+ shader_parameter/hc_debug = 0.0
+ shader_parameter/sk_zenith = Vector3(0.015954, 0.022894, 0.060409)
+ shader_parameter/sk_horizon = Vector3(2, 0.078501, 0.036102)
+diff --git a/Q7.32.PreOmega/changes.md b/Q7.32.PreOmega/changes.md
+index 7bd07a9..11e9fda 100644
+--- a/Q7.32.PreOmega/changes.md
++++ b/Q7.32.PreOmega/changes.md
+@@ -1712,3 +1712,244 @@ sk_arc_stretch 2.0 → 2.4 везде (дефолт шейдера, матери
+ strict_validate (дубли/имена/таблицы) — ПРОЙДЕНО; аудит мёртвых uniform'ов — нет;
+ CPU-превью лестницы K0..K6 сверено с рефами N2/N4/N5 и дневным эталоном
+ (scratch/out/r7_ladder_new.png, r7_day_old_vs_new.png).
++
++---
++
++## Q7.32_SkyLight_r10_s3_belowsky (27.10.2026, сессия 3) — возврат видимого неба ниже горизонта (уровень SL)
++
++### Претензия заказчика (сессия 3, п.2)
++«Верни видимое небо под горизонтом как в версии SL».
++
++### Причина (диагноз по коду и git-истории, без догадок)
++Небо под горизонтом уничтожено ТРЕМЯ правками r9 (анти-«молоко» по вердикту раунда 6 п.3):
++1. клин горизонта закрыт гейтом «только над горизонтом» (`* sstep(-0.06, -0.01, dir.y)`) —
++   заревая полоса под горизонтом погашена;
++2. окно тени ниже горизонта сужено с SL-шного −0.18 (≈10.3°) до −0.06 (≈3.4°);
++3. below_int ночей K0-K2 поднят 0.55 → 1.00 — тень ПОЛНОСТЬЮ заменяет градиент
++   чёрным sk_below_col.
++В сумме уже через 3.4° ниже горизонта оставался чистый sk_below_col: ни продолжения
++градиента, ни заревого ореола под солнцем. В SL (и в r7/r8, проверено по git aa9dbbb):
++клин симметричен горизонту (exp(−|h|·k)), окно тени −0.18, below_int = 0.55 у ВСЕХ
++ключей — тень частичная, небо под горизонтом видно.
++
++### Фикс (r10_s3) — возврат к SL в рамках единой P(dir), без новых веток и сущностей
++1. preomega_sky.gdshader/sky_palette(): гейт клина удалён — форма снова симметрична
++   (как SL v0.5.1 и r7/r8);
++2. preomega_sky.gdshader/sky_palette(): окно тени −0.06 → −0.18 (SL-значение);
++3. VeilSkyPanel.gd/SHAPE: below_int K0/K1/K2 1.00 → 0.55 (уровень SL; дни не менялись).
++НЕ тронуто: below_ext вуали (фикс r9 «линии горизонта» остаётся в силе), рампа, zw,
++метрика u_ellip (дефект зенита диагностирован в сессии 3 п.1 — фикс отдельным раундом
++по согласованию: замена метрики сдвинет u по всему куполу и потребует перенастройки
++данных p1..p5), палитры PAL/VEILP/SUNMOON/GROUND, rig, сцена, материал.
++
++### Проверено (песочница без Godot, CPU)
++- strict_validate (барьер r8: дубли идентификаторов/uniform'ов, скобки, все имена
++  set_shader_parameter существуют в шейдере, строки SHAPE = ровно SHAPE_KEYS,
++  below_int = 0.55 × 7) — ПРОЙДЕНО, 0 проблем.
++- CPU-зеркало sky_palette old(r9)/new(r10_s3), display после Filmic, яркость L:
++  K0 (ночь, солнце −30°) под солнцем h=−6°: L 0.0021 → 0.1924 (×94); антисоляр
++  h=−6°: 0.0021 → 0.0097 (тёмный, «молока» нет). K2 (синий час) под солнцем h=−6°:
++  0.0035 → 0.3328 (×96). K4 (багровый закат) под солнцем h=−3°: 0.1482 → 0.2045 (+38%).
++  Под солнцем — видимая заря, на антисоляре — темнота: поведение SL воспроизведено.
++- GPU-приёмка — за заказчиком. Риск под контролем данных: если на ночах под горизонтом
++  вернётся «молоко», доводка ДАННЫМИ (wedge_int/below_int ночей), форма общая.
++
++### Доставка r10_s3 (установка вручную)
++- Q7.32_SkyLight_r10_s3_belowsky.zip — файлы для ручной замены (зеркало структуры):
++  Assets/sky/preomega_sky.gdshader, Assets/sky/VeilSkyPanel.gd, changes.md +
++  INSTALL_Q7.32_SkyLight_r10_s3_belowsky.md;
++- инкрементный патч Q7.32_SkyLight_r10_s3_belowsky.patch (HEAD «Сравнение»/r9 → r10_s3)
++  внутри zip и рядом с ним.
++
++---
++
++## Q7.32_SkyLight_r11_s3_slveil (27.10.2026, сессия 3, раунд 2) — возврат вуали SL, детерминированная линия горизонта
++
++### Претензии заказчика (сессия 3, раунд 2)
++1. Зенит/антисоляр — ОТЛОЖЕНО заказчиком («отложи пока»). Его гипотеза подтверждена
++   CPU-проверкой: в метрике u_ellip точка антисоляра НЕ достигает u=1 при высоком
++   солнце — u(−sd) = atan(2·sd.y, −1)/π: 1.000 (солнце 0°) → 0.710 (40°) → 0.648
++   (90°), тогда как на сфере всегда 1.0. При elev ≥ 40° тёмный терминал рампы
++   (smoothstep 0.75..0.97) недостижим НИГДЕ на куполе — антисолярное ядро
++   «схлопывается». Заказчик: «по-хорошему ориентироваться на сферу: соляр в зените —
++   антисоляр в надире». Фикс (тангенциальные ноги b=dot(w,upr_hat), a=dot(w,rgt);
++   u=atan(sqrt(b²+(a/S)²), dir·sd)/π — на сфере точен, 8.4e-15) ЗАДЕФЕРЕН до
++   отдельного раунда: сдвинет u по всему куполу → потребуется перенастройка p1..p5.
++2. ГЛАВНОЕ: «при отключении вуали появляется чёткая линия горизонта… параметр вуали
++   кодирует не только вуаль, но и тон неба, градиента — неприемлемо… вернуть старую
++   вуаль (SL)».
++
++### Причина линии горизонта (диагноз подтверждён CPU-зеркалом)
++r9-член below_ext в sky() НЕ зависел ни от hc_enabled, ни от узора: pat = max(hc_a,
++below_ext), below_ext ≈ 1 в полосе (−8.6°, +0.29°). При выключенном слое (hc_a=0)
++под горизонтом оставалась закраска veil_col = P(dir)·(1+veil_lift)+veil_warm с
++силой veil_master·sun_mask, над горизонтом (за +0.29°) — чистый P(dir): ступень
++ΔL ≈ 0.113 (дисплей, K4, солнечный азимут) = чёткая линия, ДЕТЕРМИНИРОВАННАЯ
++ПАРАМЕТРАМИ ВУАЛИ. При включённой вуали линия маскировалась её полосой, но ступень
++сохранялась (ΔL ≈ 0.098 — скачок veil_col: снизу warm-тон при hc_d=0, сверху blob
++по узору). Вывод заказчика точен: veil_master/lift/warm/below_ext кодировали тон
++неба у горизонта. В SL линии нет конструктивно: альфа вуали непрерывна через ноль
++с обеих сторон горизонта (сверху гасит curtain, снизу луч плиту не пересекает).
++
++### Аудит прочих условий «только над/под горизонтом» (заказчик п.2 «посмотри ещё»)
++- r9-гейт клина sstep(−0.06,−0.01,dir.y) — УДАЛЁН в r10_s3 (уже не фактор);
++- below_ext — удалён в этом раунде (виновник, см. выше);
++- horfade звёзд smoothstep(−0.05,0.15,dir.y) — плавное окно 11.5°, только для
++  звёзд-точек, ступени не даёт (оставлен);
++- zw-затемнение smoothstep(0.30,0.95,clamp(dir.y,0,1)) — в нуле плоско, C1 (оставлен);
++- тень ниже горизонта smoothstep(0,−0.18,h)·below_int — C1 в нуле (SL-окно, r10_s3);
++- клин exp(−|dir.y|·k) — излом производной в нуле, унаследован дословно от SL
++  (в SL артефакта не даёт); vis-гейты солнца/луны — по elev источника, не по пикселю.
++Других ветвлений по горизонту в шейдере нет.
++
++### Фикс (r11_s3) — ВОЗВРАТ ВУАЛИ SL v0.5.3 (порт дословный, архитектура сохранена)
++Шейдер preomega_sky.gdshader:
++1. УДАЛЕНА модель §10.2: uniform'ы veil_master/veil_base/veil_sun/veil_sun_exp/
++   veil_lift/veil_warm/veil_blob, функции slab_interval/hc_alpha, члены sun_mask/
++   below_ext/pat/veil_col в sky(). veil_moon (лунный шеен, feedback 25.10.26)
++   СОХРАНЁН — теперь пропорционален покрытию hc_a.
++2. ВОССТАНОВЛЕНЫ из SL: hc_evaluate (один сэмпл + Beer-Lambert + CURTAIN по длине
++   пути — чистый горизонт), hc_lit_color (SKYHC-4: альбедо hc_color × (прямой свет
++   cloud_light_color×strength×мягкий терминатор 0.60..1 [опц. C9-рампа] + заливка
++   cloud_ambient_sky_color/G(up)×energy)), константы HC_TERM_LO/HI/SHADE_FLOOR,
++   uniform'ы hc_curtain_start/end, hc_color, hc_use_lighting, hc_light_gain,
++   hc_ambient_gain, use_sun_color_ramp, ramp_near/far_color, use_ambient_from_sky,
++   ambient_sky_gain, cloud_ambient_sky_color, cloud_ambient_energy. Единственная
++   адаптация: ветка use_ambient_from_sky читает sky_palette(up) (единый узел цвета
++   r7) вместо sky_gradient(up) v0.5.x — роль та же.
++3. Композит — премноженный v0.5.3: base_lin = P(dir)·(1−hc_a) + hc_rgb; далее
++   display-обвязка §5.3/§10.8 БЕЗ ИЗМЕНЕНИЙ (filmic3 → +тела·(1−hc_a) → inv_filmic):
++   окклюзия солнца/луны/звёзд той же альфой (ТЗ §11 тест 4) сохранена.
++4. hc_debug 2 показывает hc_a (семантика SL).
++Панель VeilSkyPanel.gd: VEIL_ROWS +6 ручек SL (light/ambient gain, низ/верх плиты,
++curtain start/end), −veil_base; чекбокс «Освещение вуали (hc_use_lighting)» и
++пикер «Цвет вуали (альбедо)» вместо «Утепления»; VEILP ужат до роли moon (7 ключей);
++связка света дополнена zen → cloud_ambient_sky_color (SL-связка SKYHC-4, чекбокс
++«Красить вуаль состоянием» теперь красит и заливку; откат сохраняет обе).
++Материал preomega_sky_material.tres: −8 мёртвых veil_*-строк (включая veil_curve —
++была мертва и до r11), +строки C9/ambient/hc_color/hc_use_lighting=true/гейны
++(значения SL). hc_curtain_start/end в материале уже были (4000/14000 — SL).
++НЕ тронуто: sky_palette (r10_s3-фиксы низа купола в силе), метрика u_ellip (дефект
++задокументирован, фикс отложен), небесные тела, rig, сцены, PAL/SHAPE/SUNMOON/
++GROUND/MOONPOS.
++
++### Противоречия и следствия (осознанные, по вердикту сессии 3 раунда 2)
++- Возврат curtain ОТМЕНЯЕТ норму ТЗ §3.2 «у горизонта veil_a → 1» — вердикт
++  заказчика выше ТЗ; зафиксировано здесь.
++- «Вуаль в зените видна за счёт veil_base» (r7 п.1) теперь обеспечивается ДАННЫМИ:
++  узор d (hc_coverage/softness), tau (hc_tau_per_km), тон (hc_color + связка lit/zen,
++  гейны). При elev 90° и d=0.5: a≈0.19 — слой читается; если мало — поднять
++  coverage/tau (ручки в панели), механизм тот же.
++- Ночью cloud_light_direction смотрит НА ЛУНУ (фикс rig 27.10.26) → «прямой свет»
++  вуали ночей идёт от луны — согласуется с решением «ночной ключ светит с луны».
++
++### Проверено (песочница без Godot, CPU)
++- strict_validate r11_s3 (барьер r8 + материал: дубли uniform/идентификаторов,
++  скобки, все set_shader_parameter и {"u":}-строки панели существуют в шейдере,
++  все shader_parameter материала существуют в шейдере, SHAPE=7×SHAPE_KEYS,
++  VEILP=7×[moon], SL-функции на месте, §10.2-остатков нет, r10-фиксы целы) —
++  ПРОЙДЕНО, 0 проблем.
++- CPU-зеркало горизонта (K4, солнечный азимут, display после Filmic): старая модель
++  — ступень ΔL=−0.113 (вуаль ВЫКЛ) и −0.098 (ВКЛ); новая (SL) — ΔL=0.0000 и ВКЛ,
++  и ВЫКЛ: линия горизонта вуалью не детерминирована ни при каких параметрах.
++- Гипотеза п.1 (схлопывание антисоляра) подтверждена численно (см. выше), фикс отложен.
++- GPU-приёмка — за заказчиком.
++
++### Доставка r11_s3 (установка вручную, поверх HEAD «Сравнение» — ВКЛЮЧАЕТ r10_s3)
++- Q7.32_SkyLight_r11_s3_slveil.zip: Assets/sky/preomega_sky.gdshader,
++  Assets/sky/VeilSkyPanel.gd, Assets/sky/preomega_sky_material.tres, changes.md,
++  INSTALL_Q7.32_SkyLight_r11_s3_slveil.md, cumulative-патч HEAD(r9)→r11_s3;
++- патч Q7.32_SkyLight_r11_s3_slveil.patch кумулятивный: ставит и r10_s3 (низ купола),
++  и r11_s3 (вуаль SL). Если r10_s3 уже установлен — просто заменить 3 файла.
++
++---
++
++## Q7.32_SkyLight_r12_s3_spheremetric (27.10.2026, сессия 3, раунд 3) — фикс зенита/антисоляра: сферическая метрика + миграция p-данных
++
++### Вердикт заказчика (сессия 3, раунд 3)
++1. Разность цветов градиента над/под горизонтом (вокруг соляра цвета одинаковые,
++   между соляром и антисоляром — разные) — запрошены ГИПОТЕЗЫ (текст, в чате).
++2. «Исправь зенит/антисоляр» — фикс метрики u_ellip, отложенный в раунде 2.
++
++### Гипотезы разности над/под (зафиксированы для журнала; код по ним НЕ менялся)
++- H1 (главная до фикса): дефект хорды dv в u_ellip — метрика была зеркальна не
++  относительно горизонта, а относительно плоскости на высоте sd.y, и антисоляр
++  «схлопывался» → рампа читала РАЗНЫЕ стопы над и под горизонтом при одинаковом
++  удалении; вокруг соляра обе стороны сидели в ядре/ореоле (u≈0) → цвета
++  совпадали — ровно наблюдаемая картина. УСТРАНЕНА этим раундом (метрика).
++- H2: тень ниже горизонта (sk_below_col = shadow·0.55, below_int 0.55, окно −10.3°)
++  — штатный механизм SL («ниже горизонта — тень состояния»): у горизонта mix≈0,
++  глубже до 55% замены. Вокруг соляра below_col родственен цвету зари (тот же
++  красноватый hue) → не заметно; между соляром и антисоляром base — пурпур/синева,
++  а below_col тянет в тёмно-красное/синее по ключу → разница читается. В SL было
++  так же. Проверка: временно below_int=0 в SHAPE — низ продолжит чистый градиент.
++- H3: вуаль только НАД горизонтом (SL-конструкция, curtain): при hc_enabled купол
++  выше ~5° подкрашен hc_color×освещение, низ — нет; у самого горизонта непрерывно
++  (curtain→0). Проверка: тумблер «Слой вуали» — разница должна слабеть.
++- H4: zw-затемнение кверху (ночи zen_w=0.9) действует только при dir.y>~0.3 —
++  верх купола темнеет к sk_zenith, низ — нет (дизайн «купол темнеет к зениту»).
++- H5 (мелочь): horfade звёзд (окно −2.9°..+8.6°) — только ночи, точечно.
++- H6 (мелочь): клин exp(−|dir.y|·k) — симметричен, но излом производной в нуле
++  (унаследован дословно от SL) может читаться тонкой полосой Мach у самой линии.
++
++### Фикс п.2 — сферическая метрика u_ellip (код) + миграция p1..p5 (данные)
++ШЕЙДЕР (u_ellip, единственная правка кода): ноги эллипса берутся из истинного
++тангенциального смещения w = dir − sd·(dir·sd): b = dot(w, upr_hat) (в плоскости
++солнце-зенит, со знаком, квадратом — без излома abs), a = dot(w, rgt) (азимуталь-
++ная), R = sqrt(b² + (a/Se)²), u = atan(R, dir·sd)/π. Se = mix(1, sk_arc_stretch,
++fade) — у солнца в зените/надире растяжение плавно уходит к 1 (чистая сфера;
++скачок базиса up0 на |sd.y|=0.99 невидим, т.к. при Se=1 метрика от базиса не
++зависит). При Se=1 u ТОЧНО равна углу большого круга/π (CPU: 8.4e-15).
++Свойства: u(−sd)=1 при любом солнце (антисоляр = антипод на сфере: соляр в
++зените — антисоляр в надире; соляр у горизонта — антисоляр у противоположного
++горизонта); u(зенит)=acos(sd.y)/π точно; у зенита градиент u первого порядка
++вдоль солярного вертикала (=точная угловая скорость 1/180 на градус) и гладкий
++квадратичный поперёк (эллипс — утверждённая форма), веера/складки нет.
++СТАРАЯ хорда dv=dir.y−sd.y удалена вместе с abs-ногой и.hh-гейтом.
++ПАНЕЛЬ (данные SHAPE): p1..p5 МИГРИРОВАНЫ — p_new = ψ*/π, где ψ* — угловая
++точка солярного вертикала, в которой СТАРАЯ метрика давала p_old (на вертикале
++новая u = ψ/π точно). Лестница стопов остаётся на ПРЕЖНИХ местах неба:
++| ключ | p_old                      | p_new                      |
++|------|----------------------------|----------------------------|
++| K0   | .050 .230 .420 .600 .750   | .055 .223 .402 .662 1.000  |
++| K1   | .020 .120 .240 .420 .600   | .020 .118 .231 .409 .630   |
++| K2   | .015 .140 .280 .440 .600   | .015 .138 .274 .436 .611   |
++| K3   | .010 .075 .155 .300 .520   | без изменений              |
++| K4   | .010 .075 .155 .300 .520   | .010 .075 .155 .301 .520   |
++| K5   | .010 .075 .155 .300 .520   | .010 .076 .158 .306 .518   |
++| K6   | .010 .075 .155 .300 .520   | .010 .080 .170 .329 .514   |
++Дни сдвинуты ≤0.014 (вид практически прежний), ночи пересчитаны существенно
++(K0 p5 → 1.000: старый антисоляр не добирался выше u=0.75). Следствие: тёмный
++терминал рампы smoothstep(0.75,0.97,u) (константа контракта r6, не тронута)
++теперь ДОСТИЖИМ на всех ключах — антисолярное ядро рисуется честно (ночи:
++anti==zenith — самая тёмная точка, как в модели v0.5.1/SL).
++
++### Проверено (песочница без Godot, CPU)
++- strict_validate r12_s3 (барьер r8 + материал + строки панели + r12-маркеры +
++  монотонность p-стопов в каждой строке SHAPE) — ПРОЙДЕНО, 0 проблем.
++- u(зенит) = истина (err 0.0e+00) и u(антисоляр) = 1.000000 на всех 7 ключах.
++- Изотропия у зенита (K6): du_par = −1/180 на градус (точная угловая скорость),
++  du_perp — гладкая квадратичная (эллипс), складки/веера нет.
++- Сохранность лестницы: переходы стопов на солярном вертикале сдвинулись
++  ≤ 0.083° (погрешность сетки+округления данных до 3 знаков).
++- Над/под горизонтом (азимут 90°, K4): u(+10°)=0.4989 vs u(−10°)=0.5011 —
++  метрическая асимметрия устранена; остаток — честная сфера (у K0 солнце −30°:
++  низ ближе к солнцу, верх дальше) + H2/H3/H4 (данные/дизайн).
++- GPU-приёмка — за заказчиком.
++
++### Риски / на приёмку
++- Ночи: тёмное антисолярное ядро (135°..175° от солнца) теперь рисуется —
++  сверить с рефами N2/N4/N5; если ядро шире/темнее рефа — доводка ДАННЫМИ
++  (p4/p5, PAL.anti), механизм не трогать.
++- Миграция p сохранила вертикаль, но азимутальная растяжка вне вертикали теперь
++  честная — широкие дуги вокруг соляра могут читаться чуть иначе; доводка глазами
++  по рефам — штатный процесс (данные в PAL/SHAPE).
++- H2/H3 (тень ниже горизонта, вуаль над горизонтом) — осознанные механизмы SL,
++  НЕ правились; если после фикса метрики разность над/под всё ещё мешает —
++  решение по below_int/вуали отдельным вердиктом.
++
++### Доставка r12_s3 (установка вручную; ВКЛЮЧАЕТ r10_s3 + r11_s3)
++- Q7.32_SkyLight_r12_s3_spheremetric.zip: Assets/sky/preomega_sky.gdshader,
++  Assets/sky/VeilSkyPanel.gd, Assets/sky/preomega_sky_material.tres (без изменений
++  от r11_s3 — включён для полноты ручной замены), changes.md, INSTALL,
++  кумулятивный патч HEAD(r9) → r12_s3.
