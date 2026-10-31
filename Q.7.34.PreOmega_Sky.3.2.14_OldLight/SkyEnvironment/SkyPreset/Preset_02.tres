@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="SkyPreset" format=3]
+
+[ext_resource type="Texture2D" path="res://SkyEnvironment/SkyPreset/preset_02.jpg" id="1_7sf4p"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyPreset.gd" id="2_script"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyLightProfile.gd" id="3_light"]
+[ext_resource type="Script" path="res://SkyEnvironment/SkyVeilProfile.gd" id="4_xn0qr"]
+
+[sub_resource type="Resource" id="light_02"]
+script = ExtResource("3_light")
+key_color = Color(1, 0.85, 0.65, 1)
+key_energy = 2.4
+moon_light_color = Color(0.753, 0.784, 0.91, 1)
+
+[sub_resource type="Resource" id="Resource_tf2ua"]
+script = ExtResource("4_xn0qr")
+veil_enabled = true
+
+[resource]
+script = ExtResource("2_script")
+preset_name = "02 · Солнце над облаками (Q7.34, palletes.html)"
+preview = ExtResource("1_7sf4p")
+sun_elevation = 10.0
+col_sky1 = Color(0.015686, 0.062745, 0.133333, 1)
+col_sky2 = Color(0.168627, 0.458824, 0.709804, 1)
+col_sky3 = Color(0.54902, 0.768627, 0.909804, 1)
+col_sky4 = Color(1, 0.952941, 0.839216, 1)
+col_halo = Color(0.678183, 0.678183, 0.678183, 1)
+col_light1 = Color(1, 0.952941, 0.878431, 1)
+col_light2 = Color(0.909804, 0.690196, 0.627451, 1)
+col_light3 = Color(0.207843, 0.286275, 0.372549, 1)
+breathe = 0.9
+light = SubResource("light_02")
+veil = SubResource("Resource_tf2ua")
+metadata/_custom_type_script = "uid://c6o4hvxauaari"
